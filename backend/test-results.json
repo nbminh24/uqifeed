@@ -1,0 +1,69 @@
+{
+  "processed": true,
+  "imageType": "image/jpeg",
+  "imageSize": 91260,
+  "foodData": {
+    "foodName": "Bò kho trứng ốp la kèm bánh mì",
+    "foodDescription": {
+      "Nguồn gốc và ý nghĩa văn hóa": "Món ăn kết hợp giữa bò kho - món ăn truyền thống của Việt Nam với trứng ốp la và bánh mì, phản ánh sự pha trộn ẩm thực đa dạng. Bò kho thường được xem là món ăn ấm cúng, giàu dinh dưỡng, đặc biệt phổ biến vào những ngày se lạnh. Sự kết hợp với trứng và bánh mì tạo nên một bữa ăn nhanh gọn, tiện lợi.",
+      "Hương vị đặc trưng": "Vị ngọt đậm đà của bò kho, béo ngậy của trứng, giòn thơm của bánh mì, tạo nên tổng thể hài hòa, đầy đủ vị giác.",
+      "Phương pháp chế biến truyền thống": "Bò kho được hầm kỹ với nhiều gia vị tạo nên nước dùng sánh đặc, trứng được chiên áp chảo cho lòng đỏ chín tới. Bánh mì được nướng giòn."
+    },
+    "foodIngredientList": [
+      {
+        "Ingredient Name": "Thịt bò",
+        "Ingredient Amount": "200g",
+        "Ingredient Protein": "26g",
+        "Ingredient Fat": "10g",
+        "Ingredient Carb": "0g",
+        "Ingredient Fiber": "0g",
+        "Ingredient Description": {
+          "Nguồn gốc & mô tả dân dã": "Thịt bò là nguồn protein chất lượng cao, được sử dụng rộng rãi trong nhiều món ăn. Thịt bò mềm, ngon, giàu chất sắt.",
+          "Lợi ích dinh dưỡng": "Cung cấp protein, sắt, kẽm, vitamin B12.",
+          "Cách dùng trong ẩm thực": "Được dùng trong nhiều món ăn như bò kho, bít tết, nướng, xào..."
+        }
+      },
+      {
+        "Ingredient Name": "Trứng gà",
+        "Ingredient Amount": "2 quả",
+        "Ingredient Protein": "12g",
+        "Ingredient Fat": "10g",
+        "Ingredient Carb": "1g",
+        "Ingredient Fiber": "0g",
+        "Ingredient Description": {
+          "Nguồn gốc & mô tả dân dã": "Trứng gà là thực phẩm phổ biến, giàu dinh dưỡng, dễ chế biến.",
+          "Lợi ích dinh dưỡng": "Nguồn protein, vitamin D, choline tốt cho sức khỏe.",
+          "Cách dùng trong ẩm thực": "Chiên, luộc, hấp, làm bánh..."
+        }
+      },
+      {
+        "Ingredient Name": "Bánh mì",
+        "Ingredient Amount": "2 ổ",
+        "Ingredient Protein": "8g",
+        "Ingredient Fat": "2g",
+        "Ingredient Carb": "30g",
+        "Ingredient Fiber": "2g",
+        "Ingredient Description": {
+          "Nguồn gốc & mô tả dân dã": "Bánh mì là loại bánh được ưa chuộng ở Việt Nam, giòn rụm, thơm ngon.",
+          "Lợi ích dinh dưỡng": "Cung cấp năng lượng, chất xơ.",
+          "Cách dùng trong ẩm thực": "Ăn kèm nhiều món ăn như bún chả, bò kho, pate..."
+        }
+      }
+    ],
+    "foodAdvice": {
+      "Nutrition Summary": "Món ăn giàu protein, chất béo và carbohydrate, cung cấp năng lượng cho cơ thể. Tuy nhiên, cần lưu ý lượng chất béo.",
+      "Healthier Suggestions": "Có thể giảm lượng dầu mỡ khi chế biến, tăng cường thêm rau xanh như rau mùi, hành lá để cân bằng dinh dưỡng.  Chọn loại thịt bò nạc hơn.",
+      "Consumption Tips": "Nên ăn vừa phải, không nên ăn quá nhiều chất béo.  Có thể kết hợp với các loại rau củ khác để tăng cường chất xơ và vitamin."
+    },
+    "foodPreparation": {
+      "Cách làm": [
+        "Bước 1: Chuẩn bị nguyên liệu: Sơ chế thịt bò, thái nhỏ. Ướp thịt bò với gia vị.",
+        "Bước 2: Nấu bò kho: Cho thịt bò vào nồi, thêm nước dùng, gia vị, đun nhỏ lửa cho đến khi thịt mềm.",
+        "Bước 3: Chiên trứng: Làm nóng chảo, cho trứng vào chiên cho đến khi chín.",
+        "Bước 4: Nướng bánh mì: Nướng bánh mì cho giòn.",
+        "Bước 5: Trình bày: Cho bò kho ra đĩa, đặt trứng ốp la lên trên, kèm bánh mì."
+      ]
+    }
+  },
+  "timestamp": "2025-05-23T08:51:34.617Z"
+}

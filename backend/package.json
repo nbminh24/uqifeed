@@ -11,6 +11,7 @@
     "calculate-admin-nutrition": "node src/scripts/calculate-admin-nutrition.js",
     "create-meal-types": "node src/scripts/create-meal-types.js",
     "migrate-target-nutrition": "node src/scripts/migrate-target-nutrition.js",
+    "test-food-analysis": "node src/scripts/test-food-image-analysis.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -23,6 +24,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/generative-ai": "^0.2.1",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cookie-parser": "^1.4.7",
@@ -34,7 +36,9 @@
     "google-auth-library": "^9.15.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

@@ -9,6 +9,8 @@ const authRoutes = require('./auth');
 const profileRoutes = require('./profile');
 const targetNutritionRoutes = require('./targetNutrition');
 const mealTypeRoutes = require('./mealType');
+const imageRoutes = require('./image');
+const imageAnalyzerRoutes = require('./imageAnalyzer');
 
 // Base routes
 router.get('/', indexController.home);
@@ -19,5 +21,7 @@ router.use('/api/auth', authRoutes);
 router.use('/api/profiles', profileRoutes);
 router.use('/api/nutrition', targetNutritionRoutes);
 router.use('/api/meal-types', mealTypeRoutes);
+router.use('/api/images', imageRoutes);
+router.use('/api/food-analysis', imageAnalyzerRoutes);
 
 module.exports = router;

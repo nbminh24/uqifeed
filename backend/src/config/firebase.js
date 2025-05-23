@@ -28,8 +28,14 @@ const db = admin.firestore();
 // Get Firebase Auth
 const auth = admin.auth();
 
+// Get Firebase Storage
+const storage = admin.storage();
+const bucket = storage.bucket(process.env.FIREBASE_STORAGE_BUCKET);
+
 module.exports = {
     admin,
     db,
-    auth
+    auth,
+    storage,
+    bucket
 };
