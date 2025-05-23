@@ -24,6 +24,17 @@ exports.sendSuccess = (res, message, data = null, statusCode = 200) => {
 };
 
 /**
+ * Send success response (alias for sendSuccess)
+ * @param {Object} res - Express response object
+ * @param {String} message - Success message
+ * @param {Object|Array} data - Response data
+ * @param {Number} statusCode - HTTP status code
+ */
+exports.sendSuccessResponse = (res, message, data = null, statusCode = 200) => {
+    this.sendSuccess(res, message, data, statusCode);
+};
+
+/**
  * Send created response
  * @param {Object} res - Express response object
  * @param {String} message - Success message
@@ -56,6 +67,26 @@ exports.sendPaginated = (res, message, data, pagination, statusCode = 200) => {
         data,
         pagination
     };
+
+    res.status(statusCode).json(response);
+};
+
+/**
+ * Send error response
+ * @param {Object} res - Express response object
+ * @param {String} message - Error message
+ * @param {Number} statusCode - HTTP status code
+ * @param {Object} errors - Validation errors
+ */
+exports.sendErrorResponse = (res, message, statusCode = 400, errors = null) => {
+    const response = {
+        success: false,
+        message
+    };
+
+    if (errors) {
+        response.errors = errors;
+    }
 
     res.status(statusCode).json(response);
 };
