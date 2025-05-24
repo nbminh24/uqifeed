@@ -28,9 +28,14 @@ const db = admin.firestore();
 // Get Firebase Auth
 const auth = admin.auth();
 
-// Get Firebase Storage
-const storage = admin.storage();
-const bucket = storage.bucket(process.env.FIREBASE_STORAGE_BUCKET);
+// Initialize Firebase Storage conditionally (if bucket name is provided)
+let storage = null;
+let bucket = null;
+
+if (process.env.FIREBASE_STORAGE_BUCKET) {
+    storage = admin.storage();
+    bucket = storage.bucket(process.env.FIREBASE_STORAGE_BUCKET);
+}
 
 module.exports = {
     admin,

@@ -1,7 +1,7 @@
 const { db } = require('../config/firebase');
 
 // Collection reference
-const targetNutritionsCollection = db.collection('targetNutritions');
+const targetNutritionsCollection = db.collection('target_nutrients');
 
 /**
  * Target Nutrition Model

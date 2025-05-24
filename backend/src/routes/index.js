@@ -11,6 +11,7 @@ const targetNutritionRoutes = require('./targetNutrition');
 const mealTypeRoutes = require('./mealType');
 const imageRoutes = require('./image');
 const imageAnalyzerRoutes = require('./imageAnalyzer');
+const foodRoutes = require('./food');
 
 // Base routes
 router.get('/', indexController.home);
@@ -23,5 +24,6 @@ router.use('/api/nutrition', targetNutritionRoutes);
 router.use('/api/meal-types', mealTypeRoutes);
 router.use('/api/images', imageRoutes);
 router.use('/api/food-analysis', imageAnalyzerRoutes);
+router.use('/api/foods', foodRoutes);
 
 module.exports = router;
