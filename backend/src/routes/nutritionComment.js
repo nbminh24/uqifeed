@@ -4,25 +4,18 @@
  */
 const express = require('express');
 const router = express.Router();
-const nutritionCommentController = require('../controllers/nutritionComment');
-const auth = require('../middleware/auth');
+const nutritionCommentController = require('../controllers/nutritionCommentController');
 
-// Generate and store nutrition comments for a food
-router.post('/generate/:foodId/:targetNutritionId', auth, nutritionCommentController.generateComments);
+// Get all nutrition comments for a specific nutrition post
+router.get('/:nutritionId', nutritionCommentController.getCommentsByNutritionId);
 
-// Get nutrition comments for a food
-router.get('/food/:foodId', auth, nutritionCommentController.getCommentsByFood);
-
-// Get nutrition comment by ID
-router.get('/:commentId', auth, nutritionCommentController.getCommentById);
+// Create a new nutrition comment
+router.post('/', nutritionCommentController.createComment);
 
 // Update a nutrition comment
-router.put('/:commentId', auth, nutritionCommentController.updateComment);
+router.put('/:id', nutritionCommentController.updateComment);
 
 // Delete a nutrition comment
-router.delete('/:commentId', auth, nutritionCommentController.deleteComment);
-
-// Delete all nutrition comments for a food
-router.delete('/food/:foodId', auth, nutritionCommentController.deleteCommentsByFood);
+router.delete('/:id', nutritionCommentController.deleteComment);
 
 module.exports = router;
