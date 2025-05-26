@@ -1,5 +1,7 @@
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
 const TextAnalyzerService = require('../services/textAnalyzerService');
+const DirectNutritionProcessor = require('../services/directNutritionProcessor');
+const TargetNutrition = require('../models/targetNutrition');
 const Food = require('../models/food');
 
 /**
@@ -156,7 +158,86 @@ const TextFoodAnalyzerController = {
                 500
             );
         }
-    }
+    },
+
+    /**
+     * Analyze food text and calculate nutrition values, score, and comments without saving to database
+     * @route POST /api/text-analysis/analyze-complete
+     * @access Private
+     */
+    analyzeComplete: async (req, res) => {
+        try {
+            const { textDescription, meal_type_id } = req.body;
+
+            // Validate required fields
+            if (!textDescription) {
+                return sendErrorResponse(
+                    res,
+                    'Text description is required',
+                    400
+                );
+            }
+
+            if (!meal_type_id) {
+                return sendErrorResponse(
+                    res,
+                    'Meal type ID is required',
+                    400
+                );
+            }
+
+            // Get target nutrition for the user
+            const targetNutrition = await TargetNutrition.findByUserId(req.user.id);
+            if (!targetNutrition) {
+                return sendErrorResponse(
+                    res,
+                    'Target nutrition not found. Please calculate your nutrition targets first.',
+                    404
+                );
+            }
+
+            // Process the text using Text Analyzer Service
+            const processingResults = await TextAnalyzerService.processText(textDescription);
+
+            if (!processingResults || !processingResults.foodData) {
+                return sendErrorResponse(
+                    res,
+                    'Failed to analyze food text',
+                    500
+                );
+            }
+
+            const foodData = processingResults.foodData;
+
+            // Process complete nutrition analysis
+            const completeAnalysis = DirectNutritionProcessor.processComplete(
+                foodData,
+                targetNutrition,
+                meal_type_id
+            );
+
+            // Add original text description to the result
+            completeAnalysis.food.food_text_description = textDescription;
+            completeAnalysis.food.meal_type_id = meal_type_id;
+            completeAnalysis.food.user_id = req.user.id;
+
+            return sendSuccessResponse(
+                res,
+                'Food analyzed completely',
+                {
+                    analysis: completeAnalysis,
+                    originalData: foodData
+                }
+            );
+        } catch (error) {
+            console.error('Error in complete food text analysis:', error);
+            return sendErrorResponse(
+                res,
+                error.message || 'Error analyzing food completely',
+                500
+            );
+        }
+    },
 };
 
 module.exports = TextFoodAnalyzerController;

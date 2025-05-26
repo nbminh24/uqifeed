@@ -25,4 +25,15 @@ router.post(
     textFoodAnalyzerController.analyzeAndSaveFood
 );
 
+/**
+ * @route POST /api/text-analysis/analyze-complete
+ * @desc Analyze food text and calculate nutrition values, score, and comments without saving
+ * @access Private
+ */
+router.post(
+    '/analyze-complete',
+    authenticate,
+    textFoodAnalyzerController.analyzeComplete
+);
+
 module.exports = router;

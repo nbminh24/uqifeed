@@ -16,4 +16,10 @@ router.post(
     imageAnalyzerController.analyzeFoodImageOnly
 );
 
+router.post(
+    '/analyze-complete',
+    authenticate,
+    imageAnalyzerController.analyzeComplete
+);
+
 module.exports = router;
