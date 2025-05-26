@@ -14,6 +14,7 @@ const nutritionCommentRoutes = require('./nutritionComment');
 const mealTypeRoutes = require('./mealType');
 const imageRoutes = require('./image');
 const imageAnalyzerRoutes = require('./imageAnalyzer');
+const textFoodAnalyzerRoutes = require('./textFoodAnalyzer');
 const foodRoutes = require('./food');
 
 // Base routes
@@ -30,6 +31,7 @@ router.use('/api/nutrition/comments', nutritionCommentRoutes);
 router.use('/api/meal-types', mealTypeRoutes);
 router.use('/api/images', imageRoutes);
 router.use('/api/food-analysis', imageAnalyzerRoutes);
+router.use('/api/text-analysis', textFoodAnalyzerRoutes);
 router.use('/api/foods', foodRoutes);
 
 module.exports = router;

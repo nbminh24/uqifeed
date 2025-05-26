@@ -186,6 +186,142 @@ class GeminiService {
             throw error;
         }
     }
+
+    /**
+     * Analyze a food text description and extract detailed information
+     * @param {String} textDescription - Text description of food
+     * @returns {Object} Detailed food information
+     */
+    async analyzeFoodText(textDescription) {
+        try {
+            if (!textDescription) {
+                throw new Error('No text description provided');
+            }
+
+            // Prepare the prompt for the model
+            const prompt = `
+            🧠 Phân tích mô tả món ăn và xuất thông tin chi tiết
+
+            Mô tả món ăn: "${textDescription}"
+
+            Yêu cầu:
+            Phân tích mô tả món ăn và trả về các thông tin chi tiết bên dưới. Luôn nói một cách khẳng định và cụ thể. Không sử dụng bất kỳ từ ngữ nào mang tính suy đoán như "có thể là", "có vẻ như", "likely", "possibly"...
+
+            Trả về kết quả theo định dạng JSON với cấu trúc sau:
+            {
+              "foodName": "Tên món ăn rõ ràng và cụ thể",
+              "foodDescription": {
+                "Nguồn gốc và ý nghĩa văn hóa": "Mô tả nguồn gốc và văn hóa món ăn (bằng ngôn ngữ dân dã, dễ hiểu)",
+                "Hương vị đặc trưng": "Mô tả vị giác nổi bật (giòn, béo, chua, cay, ngọt...)",
+                "Phương pháp chế biến truyền thống": "Tóm tắt phương pháp nấu chính (luộc, chiên, nướng...)"
+              },
+              "foodIngredientList": [
+                {
+                  "Ingredient Name": "Tên nguyên liệu",
+                  "Ingredient Amount": "Lượng (100g, 1 củ...)",
+                  "Ingredient Protein": "Lượng protein (g)",
+                  "Ingredient Fat": "Lượng chất béo (g)",
+                  "Ingredient Carb": "Lượng carbohydrate (g)",
+                  "Ingredient Fiber": "Lượng chất xơ (g)",
+                  "Ingredient Description": {
+                    "Nguồn gốc & mô tả dân dã": "Mô tả gần gũi, dễ hiểu",
+                    "Lợi ích dinh dưỡng": "Các điểm mạnh về sức khỏe",
+                    "Cách dùng trong ẩm thực": "Cách thường dùng trong ẩm thực"
+                  }
+                }
+              ],
+              "foodAdvice": {
+                "Nutrition Summary": "Tóm tắt giá trị dinh dưỡng của món ăn",
+                "Healthier Suggestions": "Gợi ý cách làm món ăn lành mạnh hơn",
+                "Consumption Tips": "Lời khuyên về khẩu phần, tần suất ăn, món kết hợp"
+              },
+              "foodPreparation": {
+                "Cách làm": [
+                  "Bước 1: ...",
+                  "Bước 2: ...",
+                  "..."
+                ]
+              }
+            }
+
+            Hướng dẫn cụ thể:
+
+            1. 🏷️ Tên món ăn (foodName):
+            Cung cấp tên món ăn chính xác. Nếu không biết chính xác tên món, hãy đặt tên cụ thể dựa trên các nguyên liệu chính, theo kiểu: [Cách chế biến] + [Nguyên liệu chính] (ví dụ: Salad gà và cà chua, Cơm chiên trứng và đậu, Mì xào rau củ,...).
+
+            2. 📜 Mô tả món ăn (foodDescription):
+            Mô tả món ăn với ba nội dung rõ ràng về nguồn gốc văn hóa, hương vị đặc trưng và phương pháp chế biến.
+
+            3. 🧂 Danh sách nguyên liệu (foodIngredientList):
+            Liệt kê ít nhất 3 nguyên liệu chính từ mô tả với đầy đủ thông tin về lượng, giá trị dinh dưỡng và mô tả. Ước tính giá trị dinh dưỡng dựa trên kiến thức về các thành phần.
+
+            4. 🧠 Phân tích dinh dưỡng & lời khuyên (foodAdvice):
+            Cung cấp tóm tắt dinh dưỡng, đề xuất cách làm lành mạnh hơn và lời khuyên khi sử dụng.
+
+            5. 🍳 Cách chế biến món ăn (foodPreparation):
+            Liệt kê các bước nấu món ăn một cách rõ ràng và tuần tự.
+
+            Đảm bảo sử dụng ngôn ngữ dứt khoát, khẳng định. Nếu hệ thống AI phải đoán, hãy đoán một cách dứt khoát, hợp lý và đầy đủ ngữ nghĩa.
+            `;
+
+            // Call the Gemini API
+            const result = await this.model.generateContent([prompt]);
+            const response = await result.response;
+            const text = response.text();
+
+            // Extract the JSON data from the response
+            let foodData;
+            try {
+                // Find JSON in the response (might be wrapped in markdown code blocks)
+                const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) ||
+                    text.match(/{[\s\S]*}/);
+                const jsonString = jsonMatch ?
+                    (jsonMatch[1] ? jsonMatch[1] : jsonMatch[0]) :
+                    text;
+
+                foodData = JSON.parse(jsonString);
+
+                // Đảm bảo tất cả các trường đều có giá trị
+                if (!foodData.foodName) foodData.foodName = "Không thể xác định tên món ăn";
+                if (!foodData.foodDescription) {
+                    foodData.foodDescription = {
+                        "Nguồn gốc và ý nghĩa văn hóa": "Không có thông tin",
+                        "Hương vị đặc trưng": "Không có thông tin",
+                        "Phương pháp chế biến truyền thống": "Không có thông tin"
+                    };
+                }
+                if (!foodData.foodIngredientList) foodData.foodIngredientList = [];
+                if (!foodData.foodAdvice) {
+                    foodData.foodAdvice = {
+                        "Nutrition Summary": "Không có thông tin",
+                        "Healthier Suggestions": "Không có thông tin",
+                        "Consumption Tips": "Không có thông tin"
+                    };
+                }
+                if (!foodData.foodPreparation) {
+                    foodData.foodPreparation = {
+                        "Cách làm": ["Không có thông tin về cách chế biến món ăn này"]
+                    };
+                }
+            } catch (error) {
+                console.error('Error parsing JSON from Gemini response:', error);
+                // If parsing fails, return the raw text
+                return {
+                    raw: text,
+                    error: 'Failed to parse structured data'
+                };
+            }
+
+            return {
+                processed: true,
+                foodData,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('Error analyzing food text with Gemini:', error);
+            throw error;
+        }
+    }
 }
 
 // Create a singleton instance
