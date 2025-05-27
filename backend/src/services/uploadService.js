@@ -1,4 +1,5 @@
 const geminiService = require('./geminiService');
+const fs = require('fs');
 
 /**
  * Image Processing Service
@@ -44,6 +45,39 @@ class ImageProcessingService {
     }
 
     /**
+     * Process an uploaded image file and extract food information using Gemini API
+     * @param {Object} file - Uploaded file object from Multer
+     * @returns {Object} Processing results with food data
+     */
+    static async processUploadedImage(file) {
+        try {
+            if (!file) {
+                throw new Error('No file uploaded');
+            }
+
+            // Convert file buffer to base64
+            const base64Data = file.buffer.toString('base64');
+            const mimeType = file.mimetype;
+            const base64Image = `data:${mimeType};base64,${base64Data}`;
+
+            // Call Gemini API to analyze the food image
+            const analysisResults = await geminiService.analyzeFoodImage(base64Image);
+
+            // Return the analysis results
+            return {
+                processed: true,
+                imageType: mimeType,
+                imageSize: file.size,
+                fileName: file.originalname,
+                foodData: analysisResults.foodData,
+                base64Image: base64Image, // Include base64 image for storage
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('Error processing uploaded image:', error);
+            throw error;
+        }
+    }    /**
      * Extract base64 data and mime type from a base64 image string
      * @param {String} base64Image - Base64 encoded image string
      * @returns {Object} Object containing mime type and base64 data

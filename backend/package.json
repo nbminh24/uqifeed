@@ -12,6 +12,7 @@
     "create-meal-types": "node src/scripts/create-meal-types.js",
     "migrate-target-nutrition": "node src/scripts/migrate-target-nutrition.js",
     "test-food-analysis": "node src/scripts/test-food-image-analysis.js",
+    "test-food-upload": "node src/scripts/test-food-image-upload.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
