@@ -33,29 +33,26 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 16,
         position: 'relative',
-    }, imageContainer: {
-        width: 300,
-        height: 300,
-        borderRadius: 150,
-        overflow: 'visible', // Changed from 'hidden' to allow badge to be visible
+    },
+    imageContainer: {
+        width: 360,
+        height: 360,
+        borderRadius: 180,
+        overflow: 'hidden', // Changed from 'hidden' to allow badge to be visible
         marginVertical: 16,
         position: 'relative',
         alignSelf: 'center',
-        borderWidth: 8,
-        borderColor: '#ffffff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 8,
-    }, foodImage: {
+
+    },
+    foodImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 150, // Added to ensure image is still round with overflow visible
-    }, badgeContainer: {
+        borderRadius: 157, // Adjusted to match container size (165 - 8 border width)
+    },
+    badgeContainer: {
         position: 'absolute',
-        left: 90, // Moved more to the right
-        bottom: 25,
+        left: 80, // Moved more to the right
+        bottom: 30,
         zIndex: 10,
     },
 });

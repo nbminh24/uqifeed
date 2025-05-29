@@ -64,41 +64,32 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    nutritionScoreCircle: {
+    }, nutritionScoreCircle: {
         width: 65,
         height: 65,
         borderRadius: 32.5,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 4,
         borderWidth: 2,
         borderColor: 'white',
+        // Đã xóa phần đổ bóng
     }, nutritionScoreBadge: {
         width: 70,
         height: 70,
         borderRadius: 35,
         borderWidth: 3,
         borderColor: 'white',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 8,
+        // Đã xóa phần đổ bóng
     },
     nutritionScoreText: {
-        fontSize: 24,
+        fontSize: 10,
         fontWeight: 'bold',
         color: '#fff',
         lineHeight: 26, // Helps with vertical centering
         textAlignVertical: 'center',
     },
     badgeScoreText: {
-        fontSize: 28, // Larger text for the badge
+        fontSize: 25, // Larger text for the badge
         lineHeight: 30,
     },
     smallerScoreText: {

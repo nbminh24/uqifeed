@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, View, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/Button';
@@ -27,35 +28,44 @@ export default function FoodDetailsScreen() {
     const [error, setError] = useState<string | null>(null);
     const [foodDetails, setFoodDetails] = useState<DetailedFoodResponse['data'] | null>(null);
 
-    useEffect(() => {
-        const fetchFoodDetails = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                // Use default ID if none is provided
-                const foodId = id ? String(id) : DEFAULT_FOOD_ID;
-                const response = await foodService.getDetailedFood(foodId);
-                if (response.success) {
-                    console.log('Food Details Response:', JSON.stringify(response.data, null, 2));
-                    setFoodDetails(response.data);
-                } else {
-                    setError(response.message);
-                }
-            } catch (err) {
-                setError('Failed to fetch food details');
-                console.error('Error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchFoodDetails = async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
+            // Use default ID if none is provided
+            const foodId = id ? String(id) : DEFAULT_FOOD_ID;
+            console.log('Fetching food with ID:', foodId);
+
+            const response = await foodService.getDetailedFood(foodId);
+
+            if (response.success) {
+                console.log('Food Details Response received successfully');
+                setFoodDetails(response.data);
+            } else {
+                setError(response.message);
+            }
+        } catch (err) {
+            console.error('Error fetching food details:', err);
+            setError(err instanceof Error ? err.message : 'Failed to fetch food details');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchFoodDetails();
-    }, [id]);
+    }, []); // Empty dependency array means this effect runs once on mount
+
+    const handleRetry = () => {
+        fetchFoodDetails();
+    };
 
     if (loading) {
         return (
             <ThemedView style={styles.container}>
-                <ActivityIndicator size="large" />
+                <ActivityIndicator size="large" color="#163166" />
+                <Text style={styles.loadingText}>Loading food details...</Text>
             </ThemedView>
         );
     }
@@ -63,45 +73,52 @@ export default function FoodDetailsScreen() {
     if (error || !foodDetails) {
         return (
             <ThemedView style={styles.container}>
+                <Ionicons name="alert-circle" size={48} color="red" />
                 <Text style={styles.errorText}>{error || 'Food not found'}</Text>
+                <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
             </ThemedView>
         );
-    } const { food, ingredients, nutritionComments, nutritionScore } = foodDetails;
-    console.log('Raw Nutrition Score:', JSON.stringify(nutritionScore, null, 2));
-
-    return (
-        <ThemedView style={styles.container}>
-            <Stack.Screen
-                options={{
-                    title: food.food_name,
-                    headerTintColor: '#fff',
-                    headerStyle: {
-                        backgroundColor: '#163166',
-                    },
-                    headerSearchBarOptions: undefined,
-                }}
-            />
-            <ScrollView style={styles.scrollView}>                <FoodHeader title={food.food_name}
+    } const { food, ingredients, nutritionComments, nutritionScore } = foodDetails; return (<ThemedView style={styles.container}>            <Stack.Screen options={{
+        headerTitle: () => (
+            <FoodHeader
+                title={food.food_name}
                 date={new Date(food.created_at).toLocaleDateString()}
-            />                {/* Using external image URL temporarily */}
-                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
-                    <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-                </FoodImage>
-                <CaloriesAndMacros
-                    calories={food.total_calorie}
-                    protein={food.total_protein}
-                    carbs={food.total_carb}
-                    fats={food.total_fat}
-                />
-                <IngredientsList ingredients={ingredients} />
-                {nutritionComments?.map((comment, index) => (
-                    <NutrientCard key={index} nutrient={comment} />
-                ))}
-                <FoodDescriptionInfo food_description={food.food_description} />
-                <FoodAdvice food_advice={food.food_advice} />
-                <FoodPreparation food_preparation={food.food_preparation} />
-            </ScrollView>
-        </ThemedView>
+                useAsNavigationHeader={true}
+            />
+        ),
+        headerTitleAlign: 'center',
+        headerTintColor: '#000',
+        headerLargeTitle: false, // Changed from true to false to remove the large title
+        headerStyle: {
+            backgroundColor: '#fff',
+        },        // Thêm nút 3 chấm ở bên phải để cân bằng với nút back bên trái
+        headerRight: () => (
+            <TouchableOpacity style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+            </TouchableOpacity>
+        ),
+        headerSearchBarOptions: undefined,
+    }} />
+        <ScrollView style={styles.scrollView}>
+            <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
+                <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
+            </FoodImage>
+            <CaloriesAndMacros
+                calories={food.total_calorie}
+                protein={food.total_protein}
+                carbs={food.total_carb}
+                fats={food.total_fat}
+            />
+            <IngredientsList ingredients={ingredients} />
+            {nutritionComments?.map((comment, index) => (
+                <NutrientCard key={index} nutrient={comment} />
+            ))}
+            <FoodDescriptionInfo food_description={food.food_description} />
+            <FoodAdvice food_advice={food.food_advice} />                <FoodPreparation food_preparation={food.food_preparation} />
+        </ScrollView>
+    </ThemedView>
     );
 }
 
@@ -472,5 +489,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'red',
         textAlign: 'center'
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#333',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#163166',
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        marginTop: 16,
+    }, retryButtonText: {
+        color: '#fff',
+        fontSize: 16,
     }
 });
+
