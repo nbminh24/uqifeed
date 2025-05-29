@@ -129,7 +129,10 @@ export default function FoodDetailsScreen() {
                 <View style={styles.nutritionDetailsContainer}>
                     <View style={styles.nutritionScoreRow}>
                         <View style={styles.nutritionScoreCircle}>
-                            <ThemedText style={styles.nutritionScoreText}>99</ThemedText>
+                            <ThemedText style={[
+                                styles.nutritionScoreText,
+                                mockFoodData.nutritionComments[0].amount > 99 ? styles.smallerScoreText : null
+                            ]}>99</ThemedText>
                         </View>
                         <View style={styles.nutritionScoreDetails}>
                             <ThemedText style={styles.nutritionScoreLabel}>Nutrition Score</ThemedText>
@@ -443,11 +446,13 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
         elevation: 4,
-    },
-    nutritionScoreText: {
-        fontSize: 28,
+    }, nutritionScoreText: {
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#fff',
+    },
+    smallerScoreText: {
+        fontSize: 20,
     }, nutritionScoreContainer: {
         flexDirection: 'row',
         alignItems: 'center',
