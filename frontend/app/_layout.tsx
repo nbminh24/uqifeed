@@ -18,11 +18,39 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>      <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" />        <Stack.Screen
+        name="image-analyze"
+        options={{
+          headerTitle: 'Image Analyze',
+          headerStyle: {
+            backgroundColor: '#163166',
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen
+        name="text-analyze"
+        options={{
+          headerTitle: 'Text Analyze',
+          headerStyle: {
+            backgroundColor: '#163166',
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen
+        name="food-details"
+        options={{
+          headerTitle: 'Food Details',
+          headerStyle: {
+            backgroundColor: '#163166',
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+    </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

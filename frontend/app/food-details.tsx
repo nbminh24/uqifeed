@@ -1,0 +1,694 @@
+import React from 'react';
+import { StyleSheet, Image, ScrollView, View, TouchableOpacity } from 'react-native';
+import { Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { Button } from '@/components/ui/Button';
+
+// Mock data for the food details
+const mockFoodData = {
+    name: "Pork belly & eggs",
+    imageUrl: "https://bucket1.ss-hn-1.vccloud.vn/uploads/general/2019/10/bb1-1570701960835.jpeg",
+    date: "Sun, May 4, 3:37 PM",
+    fiberScore: "Low in fiber",
+    fiberAmount: 0,
+    fiberDescription: "Suitable for light meals or snacks, when you have other high-fiber meals during the day.",
+    calories: 468,
+    protein: 57,
+    carbs: 4,
+    fats: 25,
+    ingredients: [
+        "Braising liquid",
+        "Green onions",
+        "Red chili peppers",
+        "Hard boiled eggs",
+        "Braised pork belly"
+    ], nutritionComments: [
+        {
+            title: "Calorie",
+            description: "This meal is moderately high in calories at 468 kcal, suitable for a substantial lunch or dinner if you're moderately active.",
+            iconName: "information-circle" as const,
+            type: "info",
+            amount: 468,
+            unit: "kcal",
+            progressPercentage: 60,
+            barColor: "#FF6B6B"
+        }, {
+            title: "Carbs",
+            description: "Very low in carbohydrates (4g), making this meal suitable for low-carb or ketogenic diets.",
+            iconName: "checkmark-circle" as const,
+            type: "positive",
+            amount: 4,
+            unit: "g",
+            progressPercentage: 5,
+            barColor: "#FFD166"
+        }, {
+            title: "Protein",
+            description: "Excellent source of protein (57g), exceeding the recommended amount for a single meal. Great for muscle maintenance and repair.",
+            iconName: "checkmark-circle" as const,
+            type: "positive",
+            amount: 57,
+            unit: "g",
+            progressPercentage: 90,
+            barColor: "#118AB2"
+        }, {
+            title: "Fat",
+            description: "Contains 25g of fat, mostly from pork belly. Consider balancing with lower-fat meals throughout the day.",
+            iconName: "warning" as const,
+            type: "warning",
+            amount: 25,
+            unit: "g",
+            progressPercentage: 40,
+            barColor: "#06D6A0"
+        }, {
+            title: "Fiber",
+            description: "Very low in fiber (0g). Consider adding vegetables or whole grains to increase fiber content for digestive health.",
+            iconName: "warning" as const,
+            type: "warning",
+            amount: 0,
+            unit: "g",
+            progressPercentage: 0,
+            barColor: "#8BC34A"
+        }
+    ],
+    improvements: [
+        {
+            title: "Reduce saturated fat",
+            description: "Choose leaner cuts of pork or substitute the pork belly with chicken breast or fish for a lower-fat option.",
+            iconName: "warning" as const,
+            type: "improve"
+        }
+    ],
+    positives: [
+        {
+            title: "Choosing protein-rich ingredients",
+            description: "You've included braised pork belly and hard-boiled eggs, which are excellent sources of protein, essential for building and repairing tissues.",
+            iconName: "checkmark-circle" as const,
+            type: "keep"
+        },
+        {
+            title: "Adding green onions",
+            description: "Green onions are a good source of vitamins, minerals, and antioxidants, which can contribute to overall health and well-being.",
+            iconName: "checkmark-circle" as const,
+            type: "keep"
+        }
+    ],
+    tags: ["High Protein", "Low Carb", "Keto-Friendly"]
+};
+
+export default function FoodDetailsScreen() {
+    return (
+        <ThemedView style={styles.container}>
+            <Stack.Screen options={{
+                title: 'Food Details',
+                headerShown: true,
+                headerStyle: {
+                    backgroundColor: '#163166',
+                },
+                headerTintColor: '#fff',
+            }} />
+
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                {/* Header with Title and Date */}                <View style={styles.header}>
+                    <ThemedText type="title" style={styles.foodTitle}>{mockFoodData.name}</ThemedText>
+                    <ThemedText style={styles.dateText}>{mockFoodData.date}</ThemedText>
+                </View>                {/* Food Image Section */}
+                <View style={styles.imageWrapper}>
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={{ uri: mockFoodData.imageUrl }}
+                            style={styles.foodImage}
+                            resizeMode="cover"
+                        />
+                    </View>
+                </View>
+
+                {/* Nutrition Score Details */}
+                <View style={styles.nutritionDetailsContainer}>
+                    <View style={styles.nutritionScoreRow}>
+                        <View style={styles.nutritionScoreCircle}>
+                            <ThemedText style={styles.nutritionScoreText}>99</ThemedText>
+                        </View>
+                        <View style={styles.nutritionScoreDetails}>
+                            <ThemedText style={styles.nutritionScoreLabel}>Nutrition Score</ThemedText>
+                            <ThemedText style={styles.nutritionScoreDescription}>Excellent nutrition balance</ThemedText>
+                        </View>
+                    </View>
+                </View>{/* Food Description Section */}
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>Description</ThemedText>
+
+                    <ThemedText style={styles.descriptionSubtitle}>Distinctive Flavors</ThemedText>
+                    <ThemedText style={styles.descriptionText}>
+                        Takoyaki has a mildly sweet and savory taste, crispy on the outside, and soft on the inside. KFC chicken is salty, spicy, aromatic, crispy, and rich. Spicy seafood noodles have an intense heat with a fragrant seafood aroma and rich flavor profile.
+                    </ThemedText>
+
+                    <ThemedText style={[styles.descriptionSubtitle, styles.descriptionSpacing]}>Origin and Cultural Significance</ThemedText>
+                    <ThemedText style={styles.descriptionText}>
+                        Takoyaki is a famous Japanese street food made from wheat flour batter, octopus, and various ingredients. KFC is an American-style fast food, prepared with KFC's secret recipe. Spicy seafood noodles are popular in many Asian countries, especially Korea and Vietnam, featuring a combination of noodles, seafood, and spicy sauce.
+                    </ThemedText>
+
+                    <ThemedText style={[styles.descriptionSubtitle, styles.descriptionSpacing]}>Traditional Preparation Methods</ThemedText>
+                    <ThemedText style={styles.descriptionText}>
+                        Takoyaki is grilled in a special mold that creates round shapes. KFC chicken is marinated with spices and deep-fried. Spicy seafood noodles are cooked with a spicy broth, seafood, and noodles.
+                    </ThemedText>
+                </View>                {/* Calories & Macros Card */}
+                <View style={styles.nutritionCard}>
+                    <View style={styles.nutritionHeaderRow}>
+                        <ThemedText style={styles.sectionTitle}>Calories & macros</ThemedText>
+                    </View>                    <View style={styles.caloriesRow}>
+                        <Ionicons name="flame" size={24} color="#FF6B6B" />
+                        <ThemedText type="title" style={styles.caloriesValue}>{mockFoodData.calories}</ThemedText>
+                        <ThemedText style={styles.caloriesUnit}>kcal</ThemedText>
+                    </View>
+
+                    <View style={styles.macrosBars}>
+                        <View style={styles.carbsBar}></View>
+                        <View style={styles.fatsBar}></View>
+                        <View style={styles.proteinsBar}></View>
+                    </View>
+
+                    <View style={styles.macrosLegendRow}>
+                        <View style={styles.macroLegendItem}>
+                            <View style={[styles.macroLegendDot, styles.carbsDot]}></View>
+                            <ThemedText style={styles.macroLegendTitle}>Carbs</ThemedText>
+                            <ThemedText style={styles.macroValue}>{mockFoodData.carbs}g</ThemedText>
+                        </View>
+
+                        <View style={styles.macroLegendItem}>
+                            <View style={[styles.macroLegendDot, styles.fatsDot]}></View>
+                            <ThemedText style={styles.macroLegendTitle}>Fats</ThemedText>
+                            <ThemedText style={styles.macroValue}>{mockFoodData.fats}g</ThemedText>
+                        </View>
+
+                        <View style={styles.macroLegendItem}>
+                            <View style={[styles.macroLegendDot, styles.proteinsDot]}></View>
+                            <ThemedText style={styles.macroLegendTitle}>Proteins</ThemedText>
+                            <ThemedText style={styles.macroValue}>{mockFoodData.protein}g</ThemedText>
+                        </View>
+                    </View>
+                </View>                {/* Ingredients Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeaderRow}>
+                        <ThemedText style={styles.sectionTitle}>Ingredients</ThemedText>
+                    </View>                    <View style={styles.ingredientsContainer}>                        {mockFoodData.ingredients.map((ingredient, index) => (<View key={index} style={styles.ingredientTag}>
+                        <Ionicons name="restaurant" size={18} color="#4CAF50" style={styles.ingredientIcon} />
+                        <ThemedText style={styles.ingredientText}>{ingredient}</ThemedText>
+                    </View>
+                    ))}
+                    </View>
+                </View>{/* Calorie Section */}
+                <View style={styles.fiberScoreSection}>                    <View style={styles.fiberHeaderRow}>
+                    <Ionicons name="flame" size={24} color="#FF6B6B" />
+                    <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>Calorie</ThemedText>
+                </View>
+
+                    <View style={styles.fiberScoreBar}>
+                        <View style={[styles.fiberScoreProgress, { width: `${mockFoodData.nutritionComments[0].progressPercentage}%`, backgroundColor: mockFoodData.nutritionComments[0].barColor }]}></View>
+                    </View>
+
+                    <View style={styles.fiberScoreValue}>
+                        <ThemedText style={[styles.fiberAmountText, { color: mockFoodData.nutritionComments[0].barColor }]}>
+                            {mockFoodData.nutritionComments[0].amount}{mockFoodData.nutritionComments[0].unit}
+                        </ThemedText>
+                    </View>
+
+                    <ThemedText style={styles.fiberDescription}>
+                        {mockFoodData.nutritionComments[0].description}
+                    </ThemedText>
+                </View>
+
+                {/* Carbs Section */}
+                <View style={styles.fiberScoreSection}>                    <View style={styles.fiberHeaderRow}>
+                    <Ionicons name="nutrition" size={24} color="#FFD166" />
+                    <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>Carbs</ThemedText>
+                </View>
+
+                    <View style={styles.fiberScoreBar}>
+                        <View style={[styles.fiberScoreProgress, { width: `${mockFoodData.nutritionComments[1].progressPercentage}%`, backgroundColor: mockFoodData.nutritionComments[1].barColor }]}></View>
+                    </View>
+
+                    <View style={styles.fiberScoreValue}>
+                        <ThemedText style={[styles.fiberAmountText, { color: mockFoodData.nutritionComments[1].barColor }]}>
+                            {mockFoodData.nutritionComments[1].amount}{mockFoodData.nutritionComments[1].unit}
+                        </ThemedText>
+                    </View>
+
+                    <ThemedText style={styles.fiberDescription}>
+                        {mockFoodData.nutritionComments[1].description}
+                    </ThemedText>
+                </View>
+
+                {/* Protein Section */}
+                <View style={styles.fiberScoreSection}>                    <View style={styles.fiberHeaderRow}>
+                    <Ionicons name="barbell" size={24} color="#118AB2" />
+                    <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>Protein</ThemedText>
+                </View>
+
+                    <View style={styles.fiberScoreBar}>
+                        <View style={[styles.fiberScoreProgress, { width: `${mockFoodData.nutritionComments[2].progressPercentage}%`, backgroundColor: mockFoodData.nutritionComments[2].barColor }]}></View>
+                    </View>
+
+                    <View style={styles.fiberScoreValue}>
+                        <ThemedText style={[styles.fiberAmountText, { color: mockFoodData.nutritionComments[2].barColor }]}>
+                            {mockFoodData.nutritionComments[2].amount}{mockFoodData.nutritionComments[2].unit}
+                        </ThemedText>
+                    </View>
+
+                    <ThemedText style={styles.fiberDescription}>
+                        {mockFoodData.nutritionComments[2].description}
+                    </ThemedText>
+                </View>
+
+                {/* Fat Section */}
+                <View style={styles.fiberScoreSection}>                    <View style={styles.fiberHeaderRow}>
+                    <Ionicons name="water" size={24} color="#06D6A0" />
+                    <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>Fat</ThemedText>
+                </View>
+
+                    <View style={styles.fiberScoreBar}>
+                        <View style={[styles.fiberScoreProgress, { width: `${mockFoodData.nutritionComments[3].progressPercentage}%`, backgroundColor: mockFoodData.nutritionComments[3].barColor }]}></View>
+                    </View>
+
+                    <View style={styles.fiberScoreValue}>
+                        <ThemedText style={[styles.fiberAmountText, { color: mockFoodData.nutritionComments[3].barColor }]}>
+                            {mockFoodData.nutritionComments[3].amount}{mockFoodData.nutritionComments[3].unit}
+                        </ThemedText>
+                    </View>
+
+                    <ThemedText style={styles.fiberDescription}>
+                        {mockFoodData.nutritionComments[3].description}
+                    </ThemedText>
+                </View>
+
+                {/* Fiber Section */}
+                <View style={styles.fiberScoreSection}>                    <View style={styles.fiberHeaderRow}>
+                    <Ionicons name="leaf" size={24} color="#8BC34A" />
+                    <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>Fiber</ThemedText>
+                </View>
+
+                    <View style={styles.fiberScoreBar}>
+                        <View style={[styles.fiberScoreProgress, { width: `${mockFoodData.nutritionComments[4].progressPercentage}%`, backgroundColor: mockFoodData.nutritionComments[4].barColor }]}></View>
+                    </View>
+
+                    <View style={styles.fiberScoreValue}>
+                        <ThemedText style={[styles.fiberAmountText, { color: mockFoodData.nutritionComments[4].barColor }]}>
+                            {mockFoodData.nutritionComments[4].amount}{mockFoodData.nutritionComments[4].unit}
+                        </ThemedText>
+                    </View>
+
+                    <ThemedText style={styles.fiberDescription}>
+                        {mockFoodData.nutritionComments[4].description}
+                    </ThemedText>
+                </View>{/* Advice Section */}
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>Advice</ThemedText>                    {mockFoodData.positives.map((item, index) => (
+                        <View key={index} style={styles.feedbackItem}>
+                            <View style={styles.feedbackIconContainer}>
+                                <Ionicons name={item.iconName} size={24} color="#47b255" />
+                            </View>
+                            <View style={styles.feedbackContent}>
+                                <ThemedText style={styles.feedbackTitle}>{item.title}</ThemedText>
+                                <ThemedText style={styles.feedbackDescription}>{item.description}</ThemedText>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Action Button */}
+                <View style={styles.actionButtonsContainer}>
+                    <Button
+                        title="Save"
+                        type="primary"
+                        style={styles.actionButton}
+                    />
+                </View>
+
+                {/* Bottom padding */}
+                <View style={styles.bottomPadding} />
+            </ScrollView>
+        </ThemedView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#f9f9f9',
+    },
+    scrollView: {
+        flex: 1,
+        width: '100%',
+    }, header: {
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        paddingBottom: 10,
+        alignItems: 'center',
+    },
+    foodTitle: {
+        fontSize: 22,
+        color: '#333',
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    dateText: {
+        fontSize: 12,
+        color: '#999',
+        textAlign: 'center',
+    },
+    fiberScoreSection: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 16,
+        margin: 16,
+        marginTop: 0,
+    },
+    fiberHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    fiberScoreText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginLeft: 10,
+        color: '#333',
+    },
+    fiberScoreBar: {
+        height: 12,
+        backgroundColor: '#EEEEEE',
+        borderRadius: 6,
+        marginBottom: 8,
+    },
+    fiberScoreProgress: {
+        width: '10%', // Adjust based on fiber score
+        height: '100%',
+        backgroundColor: '#FF6B6B',
+        borderRadius: 6,
+    },
+    fiberScoreValue: {
+        marginBottom: 12,
+    },
+    fiberAmountText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#FF6B6B',
+    },
+    fiberDescription: {
+        fontSize: 16,
+        color: '#555',
+        lineHeight: 22,
+    }, imageContainer: {
+        width: 300,
+        height: 300,
+        borderRadius: 150,
+        overflow: 'hidden',
+        marginVertical: 16,
+        position: 'relative',
+        alignSelf: 'center',
+    },
+    foodImage: {
+        width: '100%',
+        height: '100%',
+    }, mascotContainer: {
+        position: 'absolute',
+        left: 16,
+        bottom: 16,
+        width: 60,
+        height: 60,
+        backgroundColor: '#fff',
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    }, mascotImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+    }, nutritionScoreCircle: {
+        width: 65,
+        height: 65,
+        borderRadius: 32.5,
+        backgroundColor: '#47b255',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    nutritionScoreText: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#fff',
+    }, nutritionScoreContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        margin: 16,
+        marginBottom: 0,
+    }, nutritionDetailsContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        margin: 16,
+        marginTop: 8,
+        marginBottom: 0,
+    },
+    nutritionScoreRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    nutritionScoreBadge: {
+        position: 'absolute',
+        right: 20,
+        top: -20,
+        zIndex: 10,
+    },
+    nutritionScoreDetails: {
+        marginLeft: 16,
+        flex: 1,
+    },
+    nutritionScoreLabel: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 4,
+    },
+    nutritionScoreDescription: {
+        fontSize: 14,
+        color: '#666',
+    },
+    nutritionCard: {
+        margin: 16,
+        padding: 16,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    nutritionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    adjustButton: {
+        backgroundColor: '#f9f9f9',
+        borderRadius: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 16,
+    },
+    adjustButtonText: {
+        color: '#333',
+        fontSize: 14,
+    },
+    caloriesRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    caloriesValue: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
+    caloriesUnit: {
+        fontSize: 16,
+        color: '#888',
+        marginLeft: 4,
+        alignSelf: 'flex-end',
+        marginBottom: 4,
+    },
+    macrosBars: {
+        height: 8,
+        flexDirection: 'row',
+        marginBottom: 16,
+    },
+    carbsBar: {
+        flex: 1,
+        height: '100%',
+        backgroundColor: '#FFD166',
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
+    },
+    fatsBar: {
+        flex: 5,
+        height: '100%',
+        backgroundColor: '#06D6A0',
+    },
+    proteinsBar: {
+        flex: 10,
+        height: '100%',
+        backgroundColor: '#118AB2',
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
+    },
+    macrosLegendRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    macroLegendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    macroLegendDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        marginRight: 6,
+    },
+    carbsDot: {
+        backgroundColor: '#FFD166',
+    },
+    fatsDot: {
+        backgroundColor: '#06D6A0',
+    },
+    proteinsDot: {
+        backgroundColor: '#118AB2',
+    },
+    macroLegendTitle: {
+        fontSize: 14,
+        color: '#666',
+        marginRight: 4,
+    },
+    macroValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    section: {
+        margin: 16,
+        marginTop: 0,
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 12,
+    },
+    ingredientsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    }, ingredientTag: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#ecf6ed',
+        borderRadius: 16,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginRight: 8,
+        marginBottom: 8,
+    }, ingredientText: {
+        fontSize: 14,
+        color: '#333',
+        fontWeight: 'bold',
+    },
+    ingredientIcon: {
+        marginRight: 6,
+    },
+    feedbackItem: {
+        flexDirection: 'row',
+        marginBottom: 16,
+    },
+    feedbackIconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: '#F9F9F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    feedbackContent: {
+        flex: 1,
+    },
+    feedbackTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 4,
+    },
+    feedbackDescription: {
+        fontSize: 14,
+        color: '#555',
+        lineHeight: 20,
+    },
+    tagsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    tag: {
+        backgroundColor: '#e8f0fe',
+        borderRadius: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        marginRight: 8,
+        marginBottom: 8,
+    },
+    tagText: {
+        color: '#163166',
+        fontSize: 14,
+    },
+    actionButtonsContainer: {
+        paddingHorizontal: 16,
+        marginVertical: 16,
+    },
+    actionButton: {
+        marginVertical: 8,
+    }, bottomPadding: {
+        height: 20,
+    }, descriptionText: {
+        fontSize: 14,
+        color: '#555',
+        lineHeight: 20,
+    },
+    descriptionSubtitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 8,
+    },
+    descriptionSpacing: {
+        marginTop: 16,
+    },
+});
