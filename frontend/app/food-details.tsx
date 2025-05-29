@@ -110,11 +110,27 @@ export default function FoodDetailsScreen() {
                 protein={food.total_protein}
                 carbs={food.total_carb}
                 fats={food.total_fat}
-            />
-            <IngredientsList ingredients={ingredients} />
-            {nutritionComments?.map((comment, index) => (
-                <NutrientCard key={index} nutrient={comment} />
-            ))}
+            />            <IngredientsList ingredients={ingredients} />
+            {nutritionComments
+                ?.slice()
+                .sort((a, b) => {
+                    // Define the desired order: calories - carbs - protein - fat - fiber
+                    const order = {
+                        'Calorie': 1,
+                        'Carb': 2,
+                        'Protein': 3,
+                        'Fat': 4,
+                        'Fiber': 5
+                    };
+                    // Get order value or default to a high number if type not found
+                    const orderA = order[a.nutrition_type] || 99;
+                    const orderB = order[b.nutrition_type] || 99;
+                    return orderA - orderB;
+                })
+                .map((comment, index) => (
+                    <NutrientCard key={index} nutrient={comment} />
+                ))
+            }
             <FoodDescriptionInfo food_description={food.food_description} />
             <FoodAdvice food_advice={food.food_advice} />                <FoodPreparation food_preparation={food.food_preparation} />
         </ScrollView>

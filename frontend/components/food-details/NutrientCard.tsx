@@ -14,8 +14,27 @@ interface NutrientCardProps {
     nutrient: NutritionComment;
 }
 
-export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient }) => {
-    const barColor = nutrient.nutrition_delta >= 0 ? '#47b255' : '#FF6B6B';
+export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient }) => {    // Define colors for each nutrition type
+    const getNutritionTypeColor = (type: string) => {
+        // Convert to lowercase for case-insensitive comparison
+        const typeLower = type.toLowerCase();
+
+        if (typeLower.includes('calorie')) {
+            return '#FF6B6B'; // Red for calories
+        } else if (typeLower.includes('carb')) {
+            return '#FFD166'; // Yellow for carbs
+        } else if (typeLower.includes('protein')) {
+            return '#118AB2'; // Blue for protein
+        } else if (typeLower.includes('fat')) {
+            return '#06D6A0'; // Green for fat
+        } else if (typeLower.includes('fiber')) {
+            return '#8BC34A'; // Original color for fiber
+        } else {
+            return nutrient.nutrition_delta >= 0 ? '#47b255' : '#FF6B6B';
+        }
+    };
+
+    const barColor = getNutritionTypeColor(nutrient.nutrition_type);
     const progressPercentage = Math.min(Math.abs(nutrient.nutrition_delta), 100);
 
     // Map nutrition types to appropriate Ionicons

@@ -21,11 +21,11 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
         <View style={styles.nutritionCard}>
             <View style={styles.nutritionHeaderRow}>
                 <ThemedText style={styles.sectionTitle}>Calories & macros</ThemedText>
-            </View>
-
-            <View style={styles.caloriesRow}>
-                <Ionicons name="flame" size={32} color="#FF6B6B" />
-                <ThemedText style={styles.caloriesValue}>{calories || 0}</ThemedText>
+            </View>            <View style={styles.caloriesRow}>
+                <View style={styles.caloriesIconContainer}>
+                    <Ionicons name="flame" size={36} color="#FF6B6B" />
+                </View>
+                <ThemedText style={styles.caloriesValue}>{Math.round(calories) || 0}</ThemedText>
                 <ThemedText style={styles.caloriesUnit}>kcal</ThemedText>
             </View>
 
@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     nutritionCard: {
         margin: 16,
         padding: 16,
+        paddingTop: 18,
         backgroundColor: '#fff',
         borderRadius: 16,
         shadowColor: '#000',
@@ -69,35 +70,42 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 2,
-    },
-    nutritionHeaderRow: {
+    }, nutritionHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 3,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 12,
-    },
-    caloriesRow: {
+        marginBottom: 3,
+    }, caloriesRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
+        width: '100%',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        minHeight: 50,
     },
-    caloriesValue: {
-        fontSize: 32,
+    caloriesIconContainer: {
+        width: 40,
+        height: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    }, caloriesValue: {
+        fontSize: 34,
         fontWeight: 'bold',
         marginLeft: 8,
-    },
-    caloriesUnit: {
+        lineHeight: 40,
+    }, caloriesUnit: {
         fontSize: 16,
         color: '#888',
         marginLeft: 4,
         alignSelf: 'flex-end',
-        marginBottom: 4,
+        marginBottom: 8,
     },
     macrosBars: {
         height: 8,
