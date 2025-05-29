@@ -20,6 +20,11 @@ export default function HomeScreen() {
   const navigateToFoodDetails = () => {
     router.push('/food-details');
   };
+
+  const navigateToIngredients = () => {
+    router.push('/ingredients');
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#163166', dark: '#163166' }}
@@ -53,6 +58,12 @@ export default function HomeScreen() {
           title="Food Details"
           type="secondary"
           onPress={navigateToFoodDetails}
+          style={styles.button}
+        />
+
+        <Button
+          title="Ingredients"
+          onPress={navigateToIngredients}
           style={styles.button}
         />
       </ThemedView>

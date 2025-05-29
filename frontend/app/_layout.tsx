@@ -39,11 +39,20 @@ export default function RootLayout() {
           },
           headerTintColor: '#fff',
         }}
-      />
-      <Stack.Screen
+      />      <Stack.Screen
         name="food-details"
         options={{
           headerTitle: 'Food Details',
+          headerStyle: {
+            backgroundColor: '#163166',
+          },
+          headerTintColor: '#fff',
+        }}
+      />
+      <Stack.Screen
+        name="ingredients"
+        options={{
+          headerTitle: 'Ingredients',
           headerStyle: {
             backgroundColor: '#163166',
           },
