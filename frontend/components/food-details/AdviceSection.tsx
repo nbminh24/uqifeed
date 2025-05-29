@@ -21,7 +21,7 @@ export const AdviceSection: React.FC<AdviceSectionProps> = ({ feedbackItems }) =
             {feedbackItems.map((item, index) => (
                 <View key={index} style={styles.feedbackItem}>
                     <View style={styles.feedbackIconContainer}>
-                        <Ionicons name={item.iconName} size={24} color="#47b255" />
+                        <Ionicons name={item.iconName as any} size={24} color="#47b255" />
                     </View>
                     <View style={styles.feedbackContent}>
                         <ThemedText style={styles.feedbackTitle}>{item.title}</ThemedText>
