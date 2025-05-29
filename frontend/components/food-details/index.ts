@@ -5,4 +5,6 @@ export * from './CaloriesAndMacros';
 export * from './IngredientsList';
 export * from './NutrientCard';
 export * from './AdviceSection';
-export * from './FoodDescription';
+export * from './FoodDescriptionInfo';
+export * from './FoodAdvice';
+export * from './FoodPreparation';

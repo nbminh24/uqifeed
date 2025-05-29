@@ -57,19 +57,12 @@ class Food {
      * @param {String} userId - User ID
      * @param {Object} options - Query options (limit, sortBy, etc.)
      * @returns {Array} Array of food objects
-     */
-    static async findByUserId(userId, options = {}) {
+     */    static async findByUserId(userId, options = {}) {
         try {
+            // Simple query without sorting for now
             let query = foodsCollection.where('user_id', '==', userId);
 
-            // Apply sorting
-            if (options.sortBy) {
-                query = query.orderBy(options.sortBy, options.sortDir || 'desc');
-            } else {
-                query = query.orderBy('created_at', 'desc');
-            }
-
-            // Apply limit
+            // Apply limit if specified
             if (options.limit) {
                 query = query.limit(options.limit);
             }

@@ -18,8 +18,12 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet()); // Security headers
 app.use(morgan('dev')); // Logging
 app.use(cors({
-    origin: 'http://localhost:3000', // Frontend URL
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow any origin for development
+        callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));

@@ -1,6 +1,6 @@
-import React from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, View, ActivityIndicator, Text } from 'react-native';
+import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/Button';
@@ -12,163 +12,94 @@ import {
     IngredientsList,
     NutrientCard,
     AdviceSection,
-    FoodDescription
+    FoodDescriptionInfo,
+    FoodAdvice,
+    FoodPreparation
 } from '@/components/food-details';
+import { foodService } from '@/services/foodService';
+import { DetailedFoodResponse } from '@/types/food';
 
-// Mock data for the food details
-const mockFoodData = {
-    name: "Pork belly & eggs",
-    imageUrl: "https://bucket1.ss-hn-1.vccloud.vn/uploads/general/2019/10/bb1-1570701960835.jpeg",
-    date: "Sun, May 4, 3:37 PM",
-    fiberScore: "Low in fiber",
-    fiberAmount: 0,
-    fiberDescription: "Suitable for light meals or snacks, when you have other high-fiber meals during the day.",
-    calories: 468,
-    protein: 57,
-    carbs: 4,
-    fats: 25,
-    ingredients: [
-        "Braising liquid",
-        "Green onions",
-        "Red chili peppers",
-        "Hard boiled eggs",
-        "Braised pork belly"
-    ], nutritionComments: [
-        {
-            title: "Calorie",
-            description: "This meal is moderately high in calories at 468 kcal, suitable for a substantial lunch or dinner if you're moderately active.",
-            iconName: "information-circle" as const,
-            type: "info",
-            amount: 468,
-            unit: "kcal",
-            progressPercentage: 60,
-            barColor: "#FF6B6B"
-        }, {
-            title: "Carbs",
-            description: "Very low in carbohydrates (4g), making this meal suitable for low-carb or ketogenic diets.",
-            iconName: "checkmark-circle" as const,
-            type: "positive",
-            amount: 4,
-            unit: "g",
-            progressPercentage: 5,
-            barColor: "#FFD166"
-        }, {
-            title: "Protein",
-            description: "Excellent source of protein (57g), exceeding the recommended amount for a single meal. Great for muscle maintenance and repair.",
-            iconName: "checkmark-circle" as const,
-            type: "positive",
-            amount: 57,
-            unit: "g",
-            progressPercentage: 90,
-            barColor: "#118AB2"
-        }, {
-            title: "Fat",
-            description: "Contains 25g of fat, mostly from pork belly. Consider balancing with lower-fat meals throughout the day.",
-            iconName: "warning" as const,
-            type: "warning",
-            amount: 25,
-            unit: "g",
-            progressPercentage: 40,
-            barColor: "#06D6A0"
-        }, {
-            title: "Fiber",
-            description: "Very low in fiber (0g). Consider adding vegetables or whole grains to increase fiber content for digestive health.",
-            iconName: "warning" as const,
-            type: "warning",
-            amount: 0,
-            unit: "g",
-            progressPercentage: 0,
-            barColor: "#8BC34A"
-        }
-    ],
-    improvements: [
-        {
-            title: "Reduce saturated fat",
-            description: "Choose leaner cuts of pork or substitute the pork belly with chicken breast or fish for a lower-fat option.",
-            iconName: "warning" as const,
-            type: "improve"
-        }
-    ],
-    positives: [
-        {
-            title: "Choosing protein-rich ingredients",
-            description: "You've included braised pork belly and hard-boiled eggs, which are excellent sources of protein, essential for building and repairing tissues.",
-            iconName: "checkmark-circle" as const,
-            type: "keep"
-        },
-        {
-            title: "Adding green onions",
-            description: "Green onions are a good source of vitamins, minerals, and antioxidants, which can contribute to overall health and well-being.",
-            iconName: "checkmark-circle" as const,
-            type: "keep"
-        }
-    ],
-    tags: ["High Protein", "Low Carb", "Keto-Friendly"]
-};
+const DEFAULT_FOOD_ID = 'm1nI1QwutJ5E07s4dEIr';
 
 export default function FoodDetailsScreen() {
+    const { id } = useLocalSearchParams();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [foodDetails, setFoodDetails] = useState<DetailedFoodResponse['data'] | null>(null);
+
+    useEffect(() => {
+        const fetchFoodDetails = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                // Use default ID if none is provided
+                const foodId = id ? String(id) : DEFAULT_FOOD_ID;
+                const response = await foodService.getDetailedFood(foodId);
+                if (response.success) {
+                    console.log('Food Details Response:', JSON.stringify(response.data, null, 2));
+                    setFoodDetails(response.data);
+                } else {
+                    setError(response.message);
+                }
+            } catch (err) {
+                setError('Failed to fetch food details');
+                console.error('Error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFoodDetails();
+    }, [id]);
+
+    if (loading) {
+        return (
+            <ThemedView style={styles.container}>
+                <ActivityIndicator size="large" />
+            </ThemedView>
+        );
+    }
+
+    if (error || !foodDetails) {
+        return (
+            <ThemedView style={styles.container}>
+                <Text style={styles.errorText}>{error || 'Food not found'}</Text>
+            </ThemedView>
+        );
+    } const { food, ingredients, nutritionComments, nutritionScore } = foodDetails;
+    console.log('Raw Nutrition Score:', JSON.stringify(nutritionScore, null, 2));
+
     return (
         <ThemedView style={styles.container}>
-            <Stack.Screen options={{
-                title: 'Food Details',
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: '#163166',
-                },
-                headerTintColor: '#fff',
-            }} />
-
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {/* Header with Title and Date */}
-                <FoodHeader title={mockFoodData.name} date={mockFoodData.date} />
-
-                {/* Food Image Section */}
-                <FoodImage imageUrl={mockFoodData.imageUrl} />
-
-                {/* Nutrition Score Details */}
-                <NutritionScore score={99} description="Excellent nutrition balance" />
-
-                {/* Food Description Section */}
-                <FoodDescription description={{
-                    flavors: "Takoyaki has a mildly sweet and savory taste, crispy on the outside, and soft on the inside. KFC chicken is salty, spicy, aromatic, crispy, and rich. Spicy seafood noodles have an intense heat with a fragrant seafood aroma and rich flavor profile.",
-                    origin: "Takoyaki is a famous Japanese street food made from wheat flour batter, octopus, and various ingredients. KFC is an American-style fast food, prepared with KFC's secret recipe. Spicy seafood noodles are popular in many Asian countries, especially Korea and Vietnam, featuring a combination of noodles, seafood, and spicy sauce.",
-                    preparation: "Takoyaki is grilled in a special mold that creates round shapes. KFC chicken is marinated with spices and deep-fried. Spicy seafood noodles are cooked with a spicy broth, seafood, and noodles."
-                }} />
-
-                {/* Calories & Macros Card */}
+            <Stack.Screen
+                options={{
+                    title: food.food_name,
+                    headerTintColor: '#fff',
+                    headerStyle: {
+                        backgroundColor: '#163166',
+                    },
+                    headerSearchBarOptions: undefined,
+                }}
+            />
+            <ScrollView style={styles.scrollView}>                <FoodHeader title={food.food_name}
+                date={new Date(food.created_at).toLocaleDateString()}
+            />                {/* Using external image URL temporarily */}
+                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
+                    <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
+                </FoodImage>
                 <CaloriesAndMacros
-                    calories={mockFoodData.calories}
-                    macros={{
-                        carbs: mockFoodData.carbs,
-                        fats: mockFoodData.fats,
-                        protein: mockFoodData.protein
-                    }}
+                    calories={food.total_calorie}
+                    protein={food.total_protein}
+                    carbs={food.total_carb}
+                    fats={food.total_fat}
                 />
-
-                {/* Ingredients Section */}
-                <IngredientsList ingredients={mockFoodData.ingredients} />
-
-                {/* Nutrient Cards */}
-                <NutrientCard nutrient={mockFoodData.nutritionComments[0]} iconName="flame" />
-                <NutrientCard nutrient={mockFoodData.nutritionComments[1]} iconName="nutrition" />
-                <NutrientCard nutrient={mockFoodData.nutritionComments[2]} iconName="barbell" />
-                <NutrientCard nutrient={mockFoodData.nutritionComments[3]} iconName="water" />
-                <NutrientCard nutrient={mockFoodData.nutritionComments[4]} iconName="leaf" />
-
-                {/* Advice Section */}
-                <AdviceSection feedbackItems={mockFoodData.positives} />
-
-                {/* Action Button */}
-                <View style={styles.actionButtonsContainer}>
-                    <Button
-                        title="Save"
-                        type="primary"
-                        style={styles.actionButton}
-                    />
-                </View>
-
-                {/* Bottom padding */}
-                <View style={styles.bottomPadding} />
+                <IngredientsList ingredients={ingredients} />
+                {nutritionComments?.map((comment, index) => (
+                    <NutrientCard key={index} nutrient={comment} />
+                ))}
+                <FoodDescriptionInfo food_description={food.food_description} />
+                <FoodAdvice food_advice={food.food_advice} />
+                <FoodPreparation food_preparation={food.food_preparation} />
             </ScrollView>
         </ThemedView>
     );
@@ -177,12 +108,15 @@ export default function FoodDetailsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9f9f9',
-    },
-    scrollView: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f2f2f2',
+    }, scrollView: {
         flex: 1,
         width: '100%',
-    }, header: {
+        backgroundColor: '#f2f2f2',
+    },
+    header: {
         backgroundColor: '#FFFFFF',
         padding: 16,
         paddingBottom: 10,
@@ -534,4 +468,9 @@ const styles = StyleSheet.create({
     descriptionSpacing: {
         marginTop: 16,
     },
+    errorText: {
+        fontSize: 16,
+        color: 'red',
+        textAlign: 'center'
+    }
 });

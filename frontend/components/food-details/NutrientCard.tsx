@@ -4,98 +4,101 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 
 interface NutritionComment {
-    title: string;
-    description: string;
-    iconName: string;
-    type: string;
-    amount: number;
-    unit: string;
-    progressPercentage: number;
-    barColor: string;
+    nutrition_type: string;
+    nutrition_comment: string;
+    icon?: string;
+    nutrition_delta: number;
 }
 
 interface NutrientCardProps {
     nutrient: NutritionComment;
-    iconName: React.ComponentProps<typeof Ionicons>['name'];
 }
 
-export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, iconName }) => {
+export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient }) => {
+    const barColor = nutrient.nutrition_delta >= 0 ? '#47b255' : '#FF6B6B';
+    const progressPercentage = Math.min(Math.abs(nutrient.nutrition_delta), 100);
+
+    // Map nutrition types to appropriate Ionicons
+    const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
+        Protein: 'barbell',
+        Fat: 'water',
+        Carbohydrate: 'nutrition',
+        Fiber: 'leaf',
+        Calories: 'flame'
+    };
+
+    const iconName = iconMap[nutrient.nutrition_type] || 'information-circle';
+
     return (
-        <View style={styles.fiberScoreSection}>
-            <View style={styles.fiberHeaderRow}>
-                <Ionicons name={iconName} size={24} color={nutrient.barColor} />
-                <ThemedText type="defaultSemiBold" style={styles.fiberScoreText}>{nutrient.title}</ThemedText>
+        <View style={styles.cardContainer}>
+            <View style={styles.headerRow}>
+                <Ionicons name={iconName} size={24} color={barColor} />
+                <ThemedText type="defaultSemiBold" style={styles.nutritionType}>
+                    {nutrient.nutrition_type}
+                </ThemedText>
             </View>
 
-            <View style={styles.fiberScoreBar}>
+            <View style={styles.progressBar}>
                 <View
                     style={[
-                        styles.fiberScoreProgress,
-                        {
-                            width: `${nutrient.progressPercentage}%`,
-                            backgroundColor: nutrient.barColor
-                        }
+                        styles.progressBarFill,
+                        { width: `${progressPercentage}%`, backgroundColor: barColor }
                     ]}
                 ></View>
             </View>
 
-            <View style={styles.fiberScoreValue}>
-                <ThemedText
-                    style={[
-                        styles.fiberAmountText,
-                        { color: nutrient.barColor }
-                    ]}
-                >
-                    {nutrient.amount}{nutrient.unit}
+            <View style={styles.deltaContainer}>
+                <ThemedText style={[styles.deltaText, { color: barColor }]}>
+                    {nutrient.nutrition_delta > 0 ? '+' : ''}{nutrient.nutrition_delta}%
                 </ThemedText>
             </View>
 
-            <ThemedText style={styles.fiberDescription}>
-                {nutrient.description}
+            <ThemedText style={styles.commentText}>
+                {nutrient.nutrition_comment}
             </ThemedText>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    fiberScoreSection: {
+    cardContainer: {
         backgroundColor: '#fff',
         padding: 16,
         borderRadius: 16,
         margin: 16,
         marginTop: 0,
     },
-    fiberHeaderRow: {
+    headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
     },
-    fiberScoreText: {
-        fontSize: 20,
-        fontWeight: 'bold',
+    nutritionType: {
+        fontSize: 18,
         marginLeft: 10,
         color: '#333',
     },
-    fiberScoreBar: {
+    progressBar: {
         height: 12,
         backgroundColor: '#EEEEEE',
         borderRadius: 6,
         marginBottom: 8,
+        overflow: 'hidden',
     },
-    fiberScoreProgress: {
+    progressBarFill: {
         height: '100%',
         borderRadius: 6,
     },
-    fiberScoreValue: {
+    deltaContainer: {
         marginBottom: 12,
     },
-    fiberAmountText: {
+    deltaText: {
         fontSize: 20,
         fontWeight: 'bold',
     },
-    fiberDescription: {
-        fontSize: 16,
+    commentText: {
+        fontSize: 14,
         color: '#555',
-        lineHeight: 22,
+        lineHeight: 20,
     },
 });

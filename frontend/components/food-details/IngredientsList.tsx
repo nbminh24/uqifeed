@@ -1,10 +1,15 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 
+interface Ingredient {
+    ingredient_name: string;
+    ingredient_amount: number;
+    ingredient_description?: Record<string, unknown>;
+}
+
 interface IngredientProps {
-    ingredients: string[];
+    ingredients: Ingredient[];
 }
 
 export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
@@ -16,8 +21,10 @@ export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
             <View style={styles.ingredientsContainer}>
                 {ingredients.map((ingredient, index) => (
                     <View key={index} style={styles.ingredientTag}>
-                        <Ionicons name="restaurant" size={18} color="#4CAF50" style={styles.ingredientIcon} />
-                        <ThemedText style={styles.ingredientText}>{ingredient}</ThemedText>
+                        <ThemedText style={styles.ingredientText}>
+                            {ingredient.ingredient_name}
+                            {ingredient.ingredient_amount ? ` (${ingredient.ingredient_amount}g)` : ''}
+                        </ThemedText>
                     </View>
                 ))}
             </View>
@@ -50,8 +57,6 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
     },
     ingredientTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
         backgroundColor: '#ecf6ed',
         borderRadius: 16,
         paddingVertical: 8,
@@ -63,8 +68,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
         fontWeight: 'bold',
-    },
-    ingredientIcon: {
-        marginRight: 6,
-    },
+    }
 });

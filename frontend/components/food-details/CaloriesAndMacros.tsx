@@ -3,18 +3,20 @@ import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 
-interface MacroData {
-    carbs: number;
-    fats: number;
-    protein: number;
-}
-
 interface CaloriesAndMacrosProps {
     calories: number;
-    macros: MacroData;
+    protein: number;
+    carbs: number;
+    fats: number;
 }
 
-export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, macros }) => {
+export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, protein, carbs, fats }) => {
+    // Calculate percentages for the bars
+    const total = protein + carbs + fats;
+    const proteinPercentage = total > 0 ? (protein / total) * 100 : 0;
+    const carbsPercentage = total > 0 ? (carbs / total) * 100 : 0;
+    const fatsPercentage = total > 0 ? (fats / total) * 100 : 0;
+
     return (
         <View style={styles.nutritionCard}>
             <View style={styles.nutritionHeaderRow}>
@@ -22,34 +24,34 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
             </View>
 
             <View style={styles.caloriesRow}>
-                <Ionicons name="flame" size={24} color="#FF6B6B" />
-                <ThemedText type="title" style={styles.caloriesValue}>{calories}</ThemedText>
+                <Ionicons name="flame" size={32} color="#FF6B6B" />
+                <ThemedText style={styles.caloriesValue}>{calories || 0}</ThemedText>
                 <ThemedText style={styles.caloriesUnit}>kcal</ThemedText>
             </View>
 
             <View style={styles.macrosBars}>
-                <View style={styles.carbsBar}></View>
-                <View style={styles.fatsBar}></View>
-                <View style={styles.proteinsBar}></View>
+                <View style={[styles.carbsBar, { flex: carbsPercentage }]}></View>
+                <View style={[styles.fatsBar, { flex: fatsPercentage }]}></View>
+                <View style={[styles.proteinsBar, { flex: proteinPercentage }]}></View>
             </View>
 
             <View style={styles.macrosLegendRow}>
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.carbsDot]}></View>
                     <ThemedText style={styles.macroLegendTitle}>Carbs</ThemedText>
-                    <ThemedText style={styles.macroValue}>{macros.carbs}g</ThemedText>
+                    <ThemedText style={styles.macroValue}>{carbs || 0}g</ThemedText>
                 </View>
 
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.fatsDot]}></View>
                     <ThemedText style={styles.macroLegendTitle}>Fats</ThemedText>
-                    <ThemedText style={styles.macroValue}>{macros.fats}g</ThemedText>
+                    <ThemedText style={styles.macroValue}>{fats || 0}g</ThemedText>
                 </View>
 
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.proteinsDot]}></View>
-                    <ThemedText style={styles.macroLegendTitle}>Proteins</ThemedText>
-                    <ThemedText style={styles.macroValue}>{macros.protein}g</ThemedText>
+                    <ThemedText style={styles.macroLegendTitle}>Protein</ThemedText>
+                    <ThemedText style={styles.macroValue}>{protein || 0}g</ThemedText>
                 </View>
             </View>
         </View>

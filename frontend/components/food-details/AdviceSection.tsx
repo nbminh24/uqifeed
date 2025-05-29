@@ -3,32 +3,22 @@ import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 
-interface FeedbackItem {
-    title: string;
-    description: string;
-    iconName: string;
-    type: string;
-}
-
 interface AdviceSectionProps {
-    feedbackItems: FeedbackItem[];
+    advice: string;
 }
 
-export const AdviceSection: React.FC<AdviceSectionProps> = ({ feedbackItems }) => {
+export const AdviceSection: React.FC<AdviceSectionProps> = ({ advice }) => {
     return (
         <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Advice</ThemedText>
-            {feedbackItems.map((item, index) => (
-                <View key={index} style={styles.feedbackItem}>
-                    <View style={styles.feedbackIconContainer}>
-                        <Ionicons name={item.iconName as any} size={24} color="#47b255" />
-                    </View>
-                    <View style={styles.feedbackContent}>
-                        <ThemedText style={styles.feedbackTitle}>{item.title}</ThemedText>
-                        <ThemedText style={styles.feedbackDescription}>{item.description}</ThemedText>
-                    </View>
+            <ThemedText style={styles.sectionTitle}>Health Advice</ThemedText>
+            <View style={styles.feedbackItem}>
+                <View style={styles.feedbackIconContainer}>
+                    <Ionicons name="information-circle" size={24} color="#163166" />
                 </View>
-            ))}
+                <View style={styles.feedbackContent}>
+                    <ThemedText style={styles.description}>{advice}</ThemedText>
+                </View>
+            </View>
         </View>
     );
 };
@@ -49,6 +39,7 @@ const styles = StyleSheet.create({
     },
     feedbackItem: {
         flexDirection: 'row',
+        alignItems: 'flex-start',
         marginBottom: 16,
     },
     feedbackIconContainer: {
@@ -63,12 +54,7 @@ const styles = StyleSheet.create({
     feedbackContent: {
         flex: 1,
     },
-    feedbackTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    feedbackDescription: {
+    description: {
         fontSize: 14,
         color: '#555',
         lineHeight: 20,
