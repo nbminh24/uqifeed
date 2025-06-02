@@ -9,10 +9,20 @@ interface FoodPreparationProps {
 export const FoodPreparation: React.FC<FoodPreparationProps> = ({ food_preparation }) => {
     if (!food_preparation || (typeof food_preparation === 'object' && Object.keys(food_preparation).length === 0)) {
         return null;
-    } const splitIntoSteps = (text: string | undefined) => {
+    }
+
+    const splitIntoSteps = (text: string | undefined) => {
         if (typeof text !== 'string' || !text || text.trim() === '') return [];
-        return text
-            .split(/(?<=[.!?])\s+|\d+\.\s+/)
+
+        // First try to split by numbered steps (1., 2., etc)
+        let steps = text.split(/\d+\.\s+/);
+
+        // If no numbered steps found, split by sentences
+        if (steps.length <= 1) {
+            steps = text.split(/(?<=[.!?])\s+/);
+        }
+
+        return steps
             .map(step => step.trim())
             .filter(step => step.length > 0);
     };
@@ -55,51 +65,59 @@ export const FoodPreparation: React.FC<FoodPreparationProps> = ({ food_preparati
             )}
         </View>
     );
-
 };
 
 const styles = StyleSheet.create({
     section: {
-        margin: 16,
-        marginTop: 0,
+        marginHorizontal: 12,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 16,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+        marginBottom: 12,
     },
     sectionContainer: {
-        marginBottom: 24,
+        paddingVertical: 9,
+        borderTopWidth: 1,
+        borderTopColor: '#e0e0e0',
+        marginTop: 12,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     descriptionText: {
-        fontSize: 14,
-        color: '#555',
-        lineHeight: 22,
+        fontSize: 15,
+        color: '#444',
+        lineHeight: 20,
     },
     descriptionSubtitle: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     stepsContainer: {
         marginTop: 8,
     },
     stepContainer: {
         flexDirection: 'row',
-        marginBottom: 16,
+        marginBottom: 12,
         alignItems: 'flex-start',
     },
     stepNumber: {
-        fontSize: 14,
-        color: '#555',
+        fontSize: 15,
+        color: '#444',
         width: 28,
+        fontWeight: '600',
         marginRight: 8,
-        lineHeight: 22,
+        lineHeight: 20,
     },
     stepText: {
         flex: 1,

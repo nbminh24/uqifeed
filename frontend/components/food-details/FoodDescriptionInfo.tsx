@@ -14,21 +14,41 @@ export const FoodDescriptionInfo: React.FC<FoodDescriptionInfoProps> = ({ food_d
     // Helper function to render a section
     const renderSection = (title: string, content: string) => (
         <View style={styles.sectionGroup} key={title}>
-            <ThemedText style={styles.descriptionSubtitle}>
-                {title}
-            </ThemedText>
-            <ThemedText style={styles.descriptionText}>
-                {content}
-            </ThemedText>
+            <View style={styles.sectionHeaderContainer}>
+                <ThemedText style={styles.descriptionSubtitle}>
+                    {title}
+                </ThemedText>
+            </View>
+            {content
+                .split('\n')
+                .map((paragraph, index) =>
+                    paragraph.trim() ? (
+                        <ThemedText
+                            key={index}
+                            style={[
+                                styles.descriptionText,
+                                index === content.split('\n').length - 1 && { marginBottom: 0 } // bỏ margin cuối
+                            ]}
+                        >
+                            {paragraph.trim()}
+                        </ThemedText>
+                    ) : null
+                )}
         </View>
     );
-
     // Handle string case
     if (typeof food_description === 'string') {
         return (
             <View style={styles.section}>
-                <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-                {renderSection('General Description', food_description)}
+                <ThemedText style={styles.sectionTitle}>Food Description</ThemedText>
+                <View style={styles.sectionGroup}>
+                    <View style={styles.sectionHeaderContainer}>
+                        <ThemedText style={styles.descriptionSubtitle}>Overview</ThemedText>
+                    </View>
+                    <ThemedText style={styles.descriptionText}>
+                        {food_description.trim()}
+                    </ThemedText>
+                </View>
             </View>
         );
     }
@@ -71,33 +91,48 @@ export const FoodDescriptionInfo: React.FC<FoodDescriptionInfoProps> = ({ food_d
     );
 };
 
+// Styles for the food description section
 const styles = StyleSheet.create({
     section: {
-        margin: 16,
-        marginTop: 0,
+        marginHorizontal: 12,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 16,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+        marginBottom: 12,
     },
     sectionGroup: {
-        marginBottom: 20,
+        paddingVertical: 9,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 12,
+        marginBottom: 8,
     },
+    sectionHeaderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        marginTop: 12, // tạo khoảng cách nhỏ với section phía trên
+        borderTopWidth: 1,           // thêm đường gạch phía trên
+        borderTopColor: '#e0e0e0',   // màu nhạt hơn một chút
+    },
+
     descriptionText: {
-        fontSize: 14,
-        color: '#555',
+        fontSize: 15,
+        color: '#444',
         lineHeight: 20,
-        marginBottom: 12,
+        marginBottom: 6, // đủ tạo khoảng cách nhẹ giữa các đoạn
     },
+
     descriptionSubtitle: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 8,
     }
 });

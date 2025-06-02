@@ -60,9 +60,9 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
 
 const styles = StyleSheet.create({
     nutritionCard: {
-        margin: 16,
+        margin: 12,
         padding: 16,
-        paddingTop: 18,
+        paddingTop: 16,
         backgroundColor: '#fff',
         borderRadius: 16,
         shadowColor: '#000',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     }, caloriesRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
         width: '100%',
         paddingHorizontal: 8,
         paddingVertical: 3,

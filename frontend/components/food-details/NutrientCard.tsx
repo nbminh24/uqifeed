@@ -130,9 +130,9 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
     const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
         Protein: 'barbell',
         Fat: 'water',
-        Carbohydrate: 'nutrition',
+        Carb: 'nutrition',
         Fiber: 'leaf',
-        Calories: 'flame'
+        Calorie: 'flame'
     };
 
     const iconName = iconMap[nutrient.nutrition_type] || 'information-circle';
@@ -182,6 +182,16 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
     };
 
     const nutritionalValue = getNutritionalValue();
+
+    // Format comment text to improve readability
+    const formatComment = (comment: string) => {
+        let formatted = comment.trim();
+        formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+        if (!formatted.endsWith('.')) {
+            formatted += '.';
+        }
+        return formatted;
+    };
 
     return (
         <View style={styles.cardContainer}>
@@ -282,7 +292,7 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
             </View>
 
             <ThemedText style={styles.commentText}>
-                {nutrient.nutrition_comment}
+                {formatComment(nutrient.nutrition_comment)}
             </ThemedText>
         </View>
     );
@@ -291,9 +301,9 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
 const styles = StyleSheet.create({
     cardContainer: {
         backgroundColor: '#fff',
-        padding: 16,
+        padding: 12,
         borderRadius: 16,
-        margin: 16,
+        margin: 12,
         marginTop: 0,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -304,7 +314,7 @@ const styles = StyleSheet.create({
     headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     nutritionType: {
         fontSize: 18,
@@ -375,10 +385,13 @@ const styles = StyleSheet.create({
     percentageText: {
         fontSize: 12,
         fontWeight: '600',
-    },
-    commentText: {
+    }, commentText: {
         fontSize: 14,
-        color: '#555',
+        lineHeight: 20,
+        color: '#444',
         marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#eee'
     },
 });

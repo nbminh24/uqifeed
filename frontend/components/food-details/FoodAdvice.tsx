@@ -17,48 +17,55 @@ export const FoodAdvice: React.FC<FoodAdviceProps> = ({ food_advice }) => {
     }
 
     return (
-        <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Nutrition Analysis & Advice</ThemedText>
+        <View style={styles.section}>            <ThemedText style={styles.sectionTitle}>Nutrition Analysis & Advice</ThemedText>
 
             {typeof food_advice === 'object' ? (
                 <>
                     {food_advice['Nutrition Summary'] && (
-                        <>
-                            <ThemedText style={styles.descriptionSubtitle}>
-                                Nutrition Analysis
-                            </ThemedText>
+                        <View style={styles.sectionGroup}>
+                            <View style={styles.sectionHeaderContainer}>
+                                <ThemedText style={styles.descriptionSubtitle}>
+                                    Nutrition Analysis
+                                </ThemedText>
+                            </View>
                             <ThemedText style={styles.descriptionText}>
-                                {food_advice['Nutrition Summary']}{'\n\n'}
+                                {food_advice['Nutrition Summary']}
                             </ThemedText>
-                        </>
+                        </View>
                     )}
 
                     {food_advice['Healthier Suggestions'] && (
-                        <>
-                            <ThemedText style={[styles.descriptionSubtitle, styles.descriptionSpacing]}>
-                                Healthier Suggestions
-                            </ThemedText>
+                        <View style={styles.sectionGroup}>
+                            <View style={styles.sectionHeaderContainer}>
+                                <ThemedText style={styles.descriptionSubtitle}>
+                                    Healthier Suggestions
+                                </ThemedText>
+                            </View>
                             <ThemedText style={styles.descriptionText}>
-                                {food_advice['Healthier Suggestions']}{'\n\n'}
+                                {food_advice['Healthier Suggestions']}
                             </ThemedText>
-                        </>
+                        </View>
                     )}
 
                     {food_advice['Consumption Tips'] && (
-                        <>
-                            <ThemedText style={[styles.descriptionSubtitle, styles.descriptionSpacing]}>
-                                Consumption Tips
-                            </ThemedText>
+                        <View style={styles.sectionGroup}>
+                            <View style={styles.sectionHeaderContainer}>
+                                <ThemedText style={styles.descriptionSubtitle}>
+                                    Consumption Tips
+                                </ThemedText>
+                            </View>
                             <ThemedText style={styles.descriptionText}>
                                 {food_advice['Consumption Tips']}
                             </ThemedText>
-                        </>
+                        </View>
                     )}
                 </>
             ) : (
-                <ThemedText style={styles.descriptionText}>
-                    {food_advice}
-                </ThemedText>
+                <View style={styles.sectionGroup}>
+                    <ThemedText style={styles.descriptionText}>
+                        {food_advice}
+                    </ThemedText>
+                </View>
             )}
         </View>
     );
@@ -66,30 +73,43 @@ export const FoodAdvice: React.FC<FoodAdviceProps> = ({ food_advice }) => {
 
 const styles = StyleSheet.create({
     section: {
-        margin: 16,
-        marginTop: 0,
+        marginHorizontal: 12,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 16,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+        marginBottom: 12,
+    },
+    sectionGroup: {
+        paddingVertical: 9,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
         color: '#333',
-        marginBottom: 12,
+        marginBottom: 8,
     },
     descriptionText: {
-        fontSize: 14,
-        color: '#555',
+        fontSize: 15,
+        color: '#444',
         lineHeight: 20,
+        marginBottom: 6,
     },
     descriptionSubtitle: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 8,
     },
-    descriptionSpacing: {
-        marginTop: 16,
+    sectionHeaderContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        marginTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: '#e0e0e0',
     },
 });

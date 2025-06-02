@@ -102,10 +102,10 @@ export default function FoodDetailsScreen() {
                 />
                 {foodDetails.nutritionComments.sort((a, b) => {
                     const order = {
-                        'Calories': 1,
+                        'Calorie': 1,
                         'Protein': 2,
                         'Fat': 3,
-                        'Carbohydrate': 4,
+                        'Carb': 4,
                         'Fiber': 5
                     };
                     const orderA = order[a.nutrition_type as keyof typeof order] || 99;

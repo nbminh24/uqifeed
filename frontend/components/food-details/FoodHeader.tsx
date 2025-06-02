@@ -37,14 +37,14 @@ export const FoodHeader: React.FC<FoodHeaderProps> = ({ title, date, useAsNaviga
 const styles = StyleSheet.create({
     header: {
         backgroundColor: '#FFFFFF',
-        padding: 16,
-        paddingBottom: 10,
+        padding: 12,
+        paddingBottom: 8,
         alignItems: 'center',
     },
     foodTitle: {
         fontSize: 22,
         color: '#333',
-        marginBottom: 4,
+        marginBottom: 2,
         textAlign: 'center',
     },
     dateText: {
