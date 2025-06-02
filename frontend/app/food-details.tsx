@@ -108,6 +108,7 @@ export default function FoodDetailsScreen() {
                     carbs={food.total_carb}
                     fats={food.total_fat}
                 />
+                <IngredientsList ingredients={ingredients} />
                 {foodDetails.nutritionComments.sort((a, b) => {
                     const order = {
                         'Calorie': 1,
