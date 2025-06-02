@@ -12,6 +12,7 @@ const NutritionComment = require('../models/nutritionComment');
 const TargetNutrition = require('../models/targetNutrition');
 const NutritionScoreCalculator = require('../services/nutritionScoreCalculator');
 const NutritionCommentService = require('../services/nutritionCommentService');
+const { calculateCalories } = require('../utils/nutritionCalculator');
 
 const OneStopTextAnalysisController = {
     /**
@@ -107,17 +108,15 @@ const OneStopTextAnalysisController = {
             let totalCarb = 0;
             let totalFat = 0;
             let totalFiber = 0;
-            let totalCalorie = 0;
-
-            savedIngredients.forEach(ingredient => {
+            let totalCalorie = 0; savedIngredients.forEach(ingredient => {
                 if (ingredient.ingredient_protein) totalProtein += ingredient.ingredient_protein;
                 if (ingredient.ingredient_carb) totalCarb += ingredient.ingredient_carb;
                 if (ingredient.ingredient_fat) totalFat += ingredient.ingredient_fat;
                 if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
             });
 
-            // Calculate calories: 4 calories per gram of protein, 4 per gram of carbs, 9 per gram of fat
-            totalCalorie = (totalProtein * 4) + (totalCarb * 4) + (totalFat * 9);
+            // Calculate calories using the utility function (already rounds to whole number)
+            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
 
             // Update food with calculated nutrition values
             const updatedFood = await Food.update(savedFood.id, {

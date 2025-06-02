@@ -77,64 +77,55 @@ export default function FoodDetailsScreen() {
                 <Text style={styles.errorText}>{error || 'Food not found'}</Text>
                 <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
                     <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-            </ThemedView>
+                </TouchableOpacity>            </ThemedView>
         );
-    } const { food, ingredients, nutritionComments, nutritionScore } = foodDetails; return (<ThemedView style={styles.container}>            <Stack.Screen options={{
-        headerTitle: () => (
-            <FoodHeader
-                title={food.food_name}
-                date={new Date(food.created_at).toLocaleDateString()}
-                useAsNavigationHeader={true}
-            />
-        ),
-        headerTitleAlign: 'center',
-        headerTintColor: '#000',
-        headerLargeTitle: false, // Changed from true to false to remove the large title
-        headerStyle: {
-            backgroundColor: '#fff',
-        },        // Thêm nút 3 chấm ở bên phải để cân bằng với nút back bên trái
-        headerRight: () => (
-            <TouchableOpacity style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
-            </TouchableOpacity>
-        ),
-        headerSearchBarOptions: undefined,
-    }} />
-        <ScrollView style={styles.scrollView}>
-            <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
-                <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-            </FoodImage>
-            <CaloriesAndMacros
-                calories={food.total_calorie}
-                protein={food.total_protein}
-                carbs={food.total_carb}
-                fats={food.total_fat}
-            />            <IngredientsList ingredients={ingredients} />
-            {nutritionComments
-                ?.slice()
-                .sort((a, b) => {
-                    // Define the desired order: calories - carbs - protein - fat - fiber
+    }
+
+    const { food, ingredients, nutritionComments, nutritionScore, targetNutrition } = foodDetails;
+
+    return (
+        <ThemedView style={styles.container}>
+            <ScrollView>
+                <FoodHeader
+                    title={food.food_name}
+                    date={new Date(food.created_at).toLocaleDateString()}
+                    useAsNavigationHeader={true}
+                />
+                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
+                    <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
+                </FoodImage>
+                <CaloriesAndMacros
+                    calories={food.total_calorie}
+                    protein={food.total_protein}
+                    carbs={food.total_carb}
+                    fats={food.total_fat}
+                />
+                {foodDetails.nutritionComments.sort((a, b) => {
                     const order = {
-                        'Calorie': 1,
-                        'Carb': 2,
-                        'Protein': 3,
-                        'Fat': 4,
+                        'Calories': 1,
+                        'Protein': 2,
+                        'Fat': 3,
+                        'Carbohydrate': 4,
                         'Fiber': 5
                     };
-                    // Get order value or default to a high number if type not found
-                    const orderA = order[a.nutrition_type] || 99;
-                    const orderB = order[b.nutrition_type] || 99;
+                    const orderA = order[a.nutrition_type as keyof typeof order] || 99;
+                    const orderB = order[b.nutrition_type as keyof typeof order] || 99;
                     return orderA - orderB;
-                })
-                .map((comment, index) => (
-                    <NutrientCard key={index} nutrient={comment} />
-                ))
-            }
-            <FoodDescriptionInfo food_description={food.food_description} />
-            <FoodAdvice food_advice={food.food_advice} />                <FoodPreparation food_preparation={food.food_preparation} />
-        </ScrollView>
-    </ThemedView>
+                }).map((comment, index) => (
+                    <NutrientCard
+                        key={index}
+                        nutrient={comment}
+                        nutritionScore={nutritionScore}
+                        food={food}
+                        targetNutrition={foodDetails.targetNutrition}
+                        mealType={food.meal_type_id as 'breakfast' | 'lunch' | 'dinner' | 'snack'}
+                    />
+                ))}
+                <FoodDescriptionInfo food_description={food.food_description} />
+                <FoodAdvice food_advice={food.food_advice} />
+                <FoodPreparation food_preparation={food.food_preparation} />
+            </ScrollView>
+        </ThemedView>
     );
 }
 

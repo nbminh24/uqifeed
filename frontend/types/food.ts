@@ -73,6 +73,20 @@ export interface Food {
     updated_at: string;
 }
 
+export interface TargetNutrition {
+    id: string;
+    userId: string;
+    daily: {
+        calories: number;
+        protein: number;
+        fat: number;
+        carbs: number;
+        fiber: number;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface DetailedFoodResponse {
     success: boolean;
     message: string;
@@ -81,5 +95,6 @@ export interface DetailedFoodResponse {
         ingredients: Ingredient[];
         nutritionComments: NutritionComment[];
         nutritionScore: NutritionScore;
+        targetNutrition: TargetNutrition | null;
     };
 }

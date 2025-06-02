@@ -345,8 +345,10 @@ const FoodController = {
                 if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
             });
 
-            // Calculate calories: 4 calories per gram of protein, 4 per gram of carbs, 9 per gram of fat
-            totalCalorie = (totalProtein * 4) + (totalCarb * 4) + (totalFat * 9);
+            // Import và sử dụng hàm calculateCalories
+            const { calculateCalories } = require('../utils/nutritionCalculator');
+            // Calculate calories using the utility function (already rounds to whole number)
+            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
 
             // Update food with calculated nutritional values
             const updatedFood = await Food.update(food.id, {
@@ -381,34 +383,51 @@ const FoodController = {
         try {
             // Get food data
             const food = await Food.findById(req.params.id);
-
             if (!food) {
-                return sendErrorResponse(
-                    res,
-                    'Food not found',
-                    404
-                );
+                return sendErrorResponse(res, 'Food not found', 404);
             }
 
-            // Check if user owns the food or is admin
-            // Skip check during testing with mock token
+            // Check authorization
             const isTest = !req.user || req.user.id === 'nR3t7mJhxhIdQvTqSIqX';
             if (!isTest && food.user_id !== req.user.id && req.user.role !== 'admin') {
-                return sendErrorResponse(
-                    res,
-                    'Not authorized to access this food',
-                    403
-                );
+                return sendErrorResponse(res, 'Not authorized to access this food', 403);
             }
 
-            // Get ingredients for this food
+            // Get ingredients, comments and score
             const ingredients = await Ingredient.findByFoodId(food.id);
-
-            // Get nutrition comments for this food
             const nutritionComments = await NutritionComment.findByFoodId(food.id);
-
-            // Get nutrition score for this food
             const nutritionScore = await NutritionScore.findByFoodId(food.id);
+
+            // Get target nutrition
+            let targetNutrition = null;
+            try {
+                const { db } = require('../config/firebase');
+                const targetNutritionId = 'LOjgsvV7Pl1XFUGPr5LN';
+
+                // Print detailed debug info
+                console.log('\n=== DEBUG: TARGET NUTRITION LOOKUP ===');
+                console.log('Looking up target nutrition with ID:', targetNutritionId);
+                console.log('User ID from food:', food.user_id);
+
+                // Try to get the document directly
+                const docRef = db.collection('target_nutrients').doc(targetNutritionId);
+                const doc = await docRef.get();
+
+                console.log('Document exists?', doc.exists);
+                if (doc.exists) {
+                    targetNutrition = { id: doc.id, ...doc.data() };
+                    console.log('Document data:', targetNutrition);
+                } else {
+                    console.log('Document with ID', targetNutritionId, 'not found');
+                    // Try to list all documents in collection to see what's available
+                    const snapshot = await db.collection('target_nutrients').get();
+                    console.log('Available documents:', snapshot.docs.map(d => ({ id: d.id })));
+                }
+                console.log('=== END DEBUG ===\n');
+
+            } catch (error) {
+                console.error('Error getting target nutrition:', error);
+            }
 
             return sendSuccessResponse(
                 res,
@@ -417,7 +436,8 @@ const FoodController = {
                     food,
                     ingredients,
                     nutritionComments,
-                    nutritionScore
+                    nutritionScore,
+                    targetNutrition
                 }
             );
         } catch (error) {

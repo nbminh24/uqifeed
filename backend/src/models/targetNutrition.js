@@ -62,19 +62,40 @@ class TargetNutrition {
      * Find a target nutrition by User ID
      * @param {String} userId - User ID
      * @returns {Object|null} Target nutrition object or null if not found
-     */
-    static async findByUserId(userId) {
+     */    static async findByUserId(userId) {
         try {
-            const snapshot = await targetNutritionsCollection.where('userId', '==', userId).limit(1).get();
+            console.log('Searching for target nutrition with userId:', userId);
+            const snapshot = await targetNutritionsCollection
+                .where('userId', '==', userId)
+                .limit(1)
+                .get();
 
             if (snapshot.empty) {
-                return null;
+                console.log('No target nutrition found in collection');
+                // Try alternate field name
+                const snapshot2 = await targetNutritionsCollection
+                    .where('user_id', '==', userId)
+                    .limit(1)
+                    .get();
+
+                if (snapshot2.empty) {
+                    console.log('No target nutrition found with alternate field name');
+                    return null;
+                }
+
+                let nutrition = null;
+                snapshot2.forEach(doc => {
+                    nutrition = { id: doc.id, ...doc.data() };
+                });
+                console.log('Found target nutrition with alternate field name:', nutrition?.id);
+                return nutrition;
             }
 
             let nutrition = null;
             snapshot.forEach(doc => {
                 nutrition = { id: doc.id, ...doc.data() };
             });
+            console.log('Found target nutrition:', nutrition?.id);
 
             return nutrition;
         } catch (error) {
