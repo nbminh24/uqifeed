@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, StyleSheet as RNStyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 
@@ -17,25 +17,11 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
     const carbsPercentage = total > 0 ? (carbs / total) * 100 : 0;
     const fatsPercentage = total > 0 ? (fats / total) * 100 : 0;
 
-    // Create dynamic styles for bars
-    const dynamicStyles = StyleSheet.create({
-        proteinsBarWidth: {
-            width: `${proteinPercentage}%`,
-        },
-        fatsBarWidth: {
-            width: `${fatsPercentage}%`,
-        },
-        carbsBarWidth: {
-            width: `${carbsPercentage}%`,
-        },
-    });
-
     return (
         <View style={styles.nutritionCard}>
             <View style={styles.nutritionHeaderRow}>
                 <ThemedText style={styles.sectionTitle}>Calories & macros</ThemedText>
-            </View>
-            <View style={styles.caloriesRow}>
+            </View>            <View style={styles.caloriesRow}>
                 <View style={styles.caloriesIconContainer}>
                     <Ionicons name="flame" size={36} color="#FF6B6B" />
                 </View>
@@ -44,9 +30,9 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
             </View>
 
             <View style={styles.macrosBars}>
-                <View style={[styles.proteinsBar, dynamicStyles.proteinsBarWidth]}></View>
-                <View style={[styles.fatsBar, dynamicStyles.fatsBarWidth]}></View>
-                <View style={[styles.carbsBar, dynamicStyles.carbsBarWidth]}></View>
+                <View style={[styles.carbsBar, { flex: carbsPercentage }]}></View>
+                <View style={[styles.fatsBar, { flex: fatsPercentage }]}></View>
+                <View style={[styles.proteinsBar, { flex: proteinPercentage }]}></View>
             </View>
 
             <View style={styles.macrosLegendRow}>
@@ -72,7 +58,7 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
     );
 };
 
-const styles = RNStyleSheet.create({
+const styles = StyleSheet.create({
     nutritionCard: {
         margin: 12,
         padding: 16,
@@ -84,8 +70,7 @@ const styles = RNStyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 2,
-    },
-    nutritionHeaderRow: {
+    }, nutritionHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -96,8 +81,7 @@ const styles = RNStyleSheet.create({
         fontWeight: '600',
         color: '#333',
         marginBottom: 3,
-    },
-    caloriesRow: {
+    }, caloriesRow: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
@@ -111,14 +95,12 @@ const styles = RNStyleSheet.create({
         height: 40,
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    caloriesValue: {
+    }, caloriesValue: {
         fontSize: 34,
         fontWeight: 'bold',
         marginLeft: 8,
         lineHeight: 40,
-    },
-    caloriesUnit: {
+    }, caloriesUnit: {
         fontSize: 16,
         color: '#888',
         marginLeft: 4,
@@ -127,29 +109,27 @@ const styles = RNStyleSheet.create({
     },
     macrosBars: {
         height: 8,
+        flexDirection: 'row',
         marginBottom: 16,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 4,
-        position: 'relative',
-        overflow: 'hidden',
     },
     carbsBar: {
-        position: 'absolute',
+        flex: 1,
         height: '100%',
         backgroundColor: '#FFD166',
-        left: 0,
+        borderTopLeftRadius: 4,
+        borderBottomLeftRadius: 4,
     },
     fatsBar: {
-        position: 'absolute',
+        flex: 5,
         height: '100%',
         backgroundColor: '#06D6A0',
-        left: 0,
     },
     proteinsBar: {
-        position: 'absolute',
+        flex: 10,
         height: '100%',
         backgroundColor: '#118AB2',
-        left: 0,
+        borderTopRightRadius: 4,
+        borderBottomRightRadius: 4,
     },
     macrosLegendRow: {
         flexDirection: 'row',

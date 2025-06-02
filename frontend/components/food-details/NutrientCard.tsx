@@ -153,11 +153,12 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
     // Get values and ensure they're not null/undefined/NaN
     const { foodValue: rawFoodValue, targetValue: rawTargetValue } = getNutritionValues();
     const foodValue = isNaN(rawFoodValue) || rawFoodValue === null || rawFoodValue === undefined ? 0 : rawFoodValue;
-    const targetValue = isNaN(rawTargetValue) || rawTargetValue === null || rawTargetValue === undefined ? 1 : rawTargetValue;    // Calculate percentage relative to target (target is 100%)
+    const targetValue = isNaN(rawTargetValue) || rawTargetValue === null || rawTargetValue === undefined ? 1 : rawTargetValue;
+
+    // Calculate percentage relative to target (target is 100%)
     const percentage = targetValue > 0 ? (foodValue / targetValue) * 100 : 0;
     // Calculate width for progress bar (50% of full width = 100% of target)
     const progressWidth = (percentage / 2);
-    const barColor = getPercentageColor(percentage);
 
     // Map nutrition types to appropriate Ionicons
     const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
@@ -170,7 +171,19 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
         calories: 'flame'
     };
 
+    // Define colors matching CaloriesAndMacros component
+    const iconColorMap: { [key: string]: string } = {
+        protein: '#118AB2', // Blue
+        fat: '#06D6A0',    // Green
+        carb: '#FFD166',    // Yellow
+        carbs: '#FFD166',   // Yellow
+        fiber: '#8BC34A',   // Light green
+        calorie: '#FF6B6B', // Red
+        calories: '#FF6B6B' // Red
+    };
+
     const iconName = iconMap[typeLower] || 'information-circle';
+    const iconColor = iconColorMap[typeLower] || '#808080'; // Default to gray if no matching color
 
     // Get nutritional value in grams if available
     const getNutritionalValue = () => {
@@ -234,7 +247,11 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
             <View>
                 <View style={styles.headerRow}>
                     <View style={styles.titleContainer}>
-                        <Ionicons name={iconName} size={24} color={barColor} />
+                        <Ionicons
+                            name={iconName}
+                            size={24}
+                            color={iconColor}
+                        />
                         <ThemedText style={styles.nutritionType}>{nutrient.nutrition_type}</ThemedText>
                     </View>
                     <View style={styles.valuesContainer}>
@@ -256,7 +273,9 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                             </ThemedText>
                         </View>
                     </View>
-                </View>                {/* Progress Bar Container */}
+                </View>
+
+                {/* Progress Bar Container */}
                 <View style={styles.progressBarContainer}>
                     <View style={styles.progressBar}>
                         <View style={styles.targetLine} />
@@ -265,7 +284,7 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                                 styles.progressBarFill,
                                 {
                                     width: `${progressWidth}%`,
-                                    backgroundColor: barColor
+                                    backgroundColor: iconColor
                                 }
                             ]}
                         />
@@ -275,7 +294,7 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                 <View style={styles.percentageRow}>
                     <ThemedText style={[
                         styles.percentageText,
-                        { color: barColor }
+                        { color: iconColor }
                     ]}>
                         {Math.round(percentage)}% of target
                     </ThemedText>
