@@ -42,11 +42,11 @@ type Styles = {
 
 export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionScore, food, targetNutrition, mealType }) => {
     // Get color based on percentage difference from target
-    const getPercentageColor = (percentage: number): string => {
+    const getDeviationColor = (percentage: number): string => {
         const diff = Math.abs(100 - percentage);
-        if (diff > 30) return '#FF6B6B'; // Red for >30% difference
-        if (diff > 20) return '#FFD166'; // Yellow for >20% difference
-        return '#47b255'; // Green for ≤20% difference
+        if (diff > 30) return '#FFE5E5'; // Light red for >30% difference
+        if (diff >= 20) return '#FFF3DC'; // Light yellow for >=20% difference
+        return '#E8F5E9'; // Light green for <20% difference
     };
 
     const typeLower = nutrient.nutrition_type.toLowerCase();
@@ -278,16 +278,48 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                 {/* Progress Bar Container */}
                 <View style={styles.progressBarContainer}>
                     <View style={styles.progressBar}>
-                        <View style={styles.targetLine} />
+                        {/* Deviation highlight for under target */}
+                        {progressWidth < 50 && (
+                            <View
+                                style={[
+                                    styles.deviationHighlight,
+                                    {
+                                        left: `${progressWidth}%`,
+                                        width: `${50 - progressWidth}%`,
+                                        backgroundColor: iconColor,
+                                        opacity: 0.3
+                                    }
+                                ]}
+                            />
+                        )}
+                        {/* Main progress bar up to target */}
                         <View
                             style={[
                                 styles.progressBarFill,
                                 {
-                                    width: `${progressWidth}%`,
-                                    backgroundColor: iconColor
+                                    width: `${Math.min(progressWidth, 50)}%`,
+                                    backgroundColor: iconColor,
                                 }
                             ]}
                         />
+                        {/* Deviation highlight for over target */}
+                        {progressWidth > 50 && (
+                            <View
+                                style={[
+                                    styles.deviationHighlight,
+                                    {
+                                        left: '50%',
+                                        width: `${progressWidth - 50}%`,
+                                        backgroundColor: iconColor,
+                                        opacity: 0.3,
+                                        borderTopRightRadius: 10,
+                                        borderBottomRightRadius: 10
+                                    }
+                                ]}
+                            />
+                        )}
+                        {/* Target line */}
+                        <View style={styles.targetLine} />
                     </View>
                 </View>
 
@@ -344,7 +376,8 @@ const styles = StyleSheet.create({
     },
     progressBarContainer: {
         marginVertical: 8,
-    }, progressBar: {
+    },
+    progressBar: {
         height: 20,
         backgroundColor: '#F5F5F5',
         borderRadius: 10,
@@ -358,6 +391,13 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
         position: 'absolute',
         left: 0,
+        zIndex: 2,
+    },
+    deviationHighlight: {
+        position: 'absolute',
+        height: '100%',
+        zIndex: 1,
+        opacity: 0.7
     },
     targetLine: {
         position: 'absolute',
@@ -365,7 +405,7 @@ const styles = StyleSheet.create({
         height: '100%',
         backgroundColor: '#E0E0E0',
         left: '50%',
-        zIndex: 1,
+        zIndex: 3,
     },
     valueContainer: {
         alignItems: 'center',
