@@ -8,6 +8,14 @@ export interface Ingredient {
     ingredient_carb?: number;
     ingredient_fat?: number;
     ingredient_fiber?: number;
+    // Vietnamese description fields
+    cach_dung_trong_am_thuc?: string;
+    loi_ich_dinh_duong?: string;
+    nguon_goc_mo_ta_dan_da?: string;
+    // English description fields
+    culinary_use?: string;
+    nutritional_benefits?: string;
+    description?: string;
 }
 
 export interface NutritionComment {

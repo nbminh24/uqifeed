@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { ThemedView } from '@/components/ThemedView';
 import { Button } from '@/components/ui/Button';
@@ -11,85 +11,70 @@ import {
     DescriptionSection
 } from '@/components/ingredients';
 
-// Mock data for ingredient details
-const mockIngredientData = {
-    name: "Nghệ tươi",
-    amount: "50 gram",
-    nutritionInfo: {
+export default function IngredientScreen() {
+    const params = useLocalSearchParams();
+    console.log('Received params:', params); // Debug log
+
+    const ingredientName = params.name as string;
+    const ingredientAmount = params.amount as string;
+    const rawDescription = params.description ? JSON.parse(params.description as string) : {};
+    console.log('Parsed description:', rawDescription); // Debug log
+
+    const ingredientDescription = {
+        culinaryUse: rawDescription['Cách dùng trong ẩm thực'] || '',
+        nutritionalBenefits: rawDescription['Lợi ích dinh dưỡng'] || '',
+        originDescription: rawDescription['Nguồn gốc & mô tả dân dã'] || ''
+    };
+
+    const nutritionInfo = {
         carb: 10,
         fat: 1,
         protein: 2,
         fiber: 2
-    },
-    description: {
-        culinaryUse: "Nghệ được dùng trong nhiều món ăn, nhất là các món cá, tạo màu sắc bắt mắt và tăng hương vị.",
-        nutritionalBenefits: "Nghệ có tác dụng chống viêm, tốt cho hệ tiêu hóa.",
-        originDescription: "Nghệ tươi có vị cay nhẹ, mùi thơm đặc trưng. Thường dùng làm gia vị, tạo màu vàng đẹp mắt cho món ăn."
-    },
-    createdAt: "Sun, May 25, 2:15 PM"
-};
+    };
 
-export default function IngredientScreen() {
     return (
         <ThemedView style={styles.container}>
-            <Stack.Screen options={{
-                title: 'Ingredient Details',
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: '#163166',
-                },
-                headerTintColor: '#fff',
-            }} />
-
+            <Stack.Screen
+                options={{
+                    title: 'Ingredient Details',
+                    headerShadowVisible: false,
+                }}
+            />
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                {/* Ingredient Header */}
                 <IngredientHeader
-                    name={mockIngredientData.name}
-                    createdAt={mockIngredientData.createdAt}
+                    name={ingredientName}
+                    createdAt={new Date().toLocaleDateString()}
                 />
 
-                {/* Ingredient Amount */}
                 <IngredientAmount
-                    amount={mockIngredientData.amount}
+                    amount={ingredientAmount}
                 />
 
-                {/* Nutrition Information */}
                 <NutritionInfo
-                    nutritionInfo={mockIngredientData.nutritionInfo}
-                />
-
-                {/* Description Sections */}
-                <DescriptionSection
+                    nutritionInfo={nutritionInfo}
+                />                <DescriptionSection
                     title="Culinary Use"
-                    description={mockIngredientData.description.culinaryUse}
+                    description={ingredientDescription.culinaryUse || 'Chưa có thông tin về cách dùng trong ẩm thực.'}
                 />
 
                 <DescriptionSection
                     title="Nutritional Benefits"
-                    description={mockIngredientData.description.nutritionalBenefits}
+                    description={ingredientDescription.nutritionalBenefits || 'Chưa có thông tin về lợi ích dinh dưỡng.'}
                 />
 
                 <DescriptionSection
-                    title="Origin & Description"
-                    description={mockIngredientData.description.originDescription}
+                    title="Origin Description"
+                    description={ingredientDescription.originDescription || 'Chưa có thông tin về nguồn gốc và mô tả.'}
                 />
 
-                {/* Action Button */}
-                <View style={styles.actionButtonsContainer}>
-                    <Button
-                        title="Save"
-                        type="primary"
-                        style={styles.actionButton}
-                    />
-                </View>
-
-                {/* Bottom padding */}
                 <View style={styles.bottomPadding} />
             </ScrollView>
         </ThemedView>
     );
 }
 
+// ✅ styles đặt ngoài component
 const styles = StyleSheet.create({
     container: {
         flex: 1,

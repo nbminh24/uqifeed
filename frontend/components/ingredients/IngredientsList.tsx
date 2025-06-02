@@ -2,27 +2,28 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
+import { Ingredient } from '@/types/food';
 
-interface Ingredient {
-    ingredient_name: string;
-    ingredient_amount: number;
-    ingredient_description?: Record<string, unknown>;
-}
-
-interface IngredientProps {
+interface IngredientsListProps {
     ingredients: Ingredient[];
 }
 
-export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
+export const IngredientsList: React.FC<IngredientsListProps> = ({ ingredients }) => {
     const router = useRouter();
 
-    const handleIngredientPress = (ingredient: Ingredient) => {
-        // Navigate to the ingredient details screen with the ingredient data
+    if (!ingredients || ingredients.length === 0) {
+        return null;
+    } const handleIngredientPress = (ingredient: Ingredient) => {
+        console.log('Ingredient pressed:', ingredient); // Debug log
+        const description = ingredient.ingredient_description || {};
+        console.log('Description data:', description); // Debug log
+
+        // Navigate to ingredient detail page
         router.push({
             pathname: '/ingredients',
             params: {
                 name: ingredient.ingredient_name,
-                amount: `${ingredient.ingredient_amount}g`,
+                amount: ingredient.ingredient_amount,
                 description: JSON.stringify(ingredient.ingredient_description || {})
             }
         });
@@ -30,13 +31,11 @@ export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
 
     return (
         <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-                <ThemedText style={styles.sectionTitle}>Ingredients</ThemedText>
-            </View>
+            <ThemedText style={styles.sectionTitle}>Ingredients</ThemedText>
             <View style={styles.ingredientsContainer}>
-                {ingredients.map((ingredient, index) => (
+                {ingredients.map((ingredient) => (
                     <TouchableOpacity
-                        key={index}
+                        key={ingredient.id}
                         style={styles.ingredientTag}
                         onPress={() => handleIngredientPress(ingredient)}
                     >
@@ -53,16 +52,15 @@ export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
 
 const styles = StyleSheet.create({
     section: {
-        margin: 16,
-        marginTop: 0,
+        marginHorizontal: 12,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 16,
-    },
-    sectionHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
         marginBottom: 12,
     },
     sectionTitle: {
@@ -74,18 +72,16 @@ const styles = StyleSheet.create({
     ingredientsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
+        gap: 8,
     },
     ingredientTag: {
-        backgroundColor: '#ecf6ed',
+        backgroundColor: '#f0f7ff',
         borderRadius: 16,
         paddingVertical: 8,
         paddingHorizontal: 12,
-        marginRight: 8,
-        marginBottom: 8,
     },
     ingredientText: {
         fontSize: 14,
         color: '#333',
-        fontWeight: 'bold',
-    }
+    },
 });
