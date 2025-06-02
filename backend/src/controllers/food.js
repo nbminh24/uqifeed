@@ -2,6 +2,7 @@ const Food = require('../models/food');
 const Ingredient = require('../models/ingredient');
 const NutritionComment = require('../models/nutritionComment');
 const NutritionScore = require('../models/nutritionScore');
+const TargetNutrition = require('../models/targetNutrition');
 const ImageProcessingService = require('../services/uploadService');
 const GeminiService = require('../services/geminiService');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
@@ -391,9 +392,7 @@ const FoodController = {
             const isTest = !req.user || req.user.id === 'nR3t7mJhxhIdQvTqSIqX';
             if (!isTest && food.user_id !== req.user.id && req.user.role !== 'admin') {
                 return sendErrorResponse(res, 'Not authorized to access this food', 403);
-            }
-
-            // Get ingredients, comments and score
+            }            // Get ingredients, comments and score
             const ingredients = await Ingredient.findByFoodId(food.id);
             const nutritionComments = await NutritionComment.findByFoodId(food.id);
             const nutritionScore = await NutritionScore.findByFoodId(food.id);
@@ -401,27 +400,36 @@ const FoodController = {
             // Get target nutrition
             let targetNutrition = null;
             try {
-                const { db } = require('../config/firebase');
-                const targetNutritionId = 'LOjgsvV7Pl1XFUGPr5LN';
-
-                // Print detailed debug info
+                // Get target nutrition for the user who owns the food
+                const userId = food.user_id;
                 console.log('\n=== DEBUG: TARGET NUTRITION LOOKUP ===');
-                console.log('Looking up target nutrition with ID:', targetNutritionId);
-                console.log('User ID from food:', food.user_id);
+                console.log('Looking up target nutrition for user ID:', userId);
 
-                // Try to get the document directly
-                const docRef = db.collection('target_nutrients').doc(targetNutritionId);
-                const doc = await docRef.get();
+                // First try to find by user ID
+                targetNutrition = await TargetNutrition.findByUserId(userId);
 
-                console.log('Document exists?', doc.exists);
-                if (doc.exists) {
-                    targetNutrition = { id: doc.id, ...doc.data() };
-                    console.log('Document data:', targetNutrition);
+                if (targetNutrition) {
+                    console.log('Found target nutrition for user:', targetNutrition.id);
                 } else {
-                    console.log('Document with ID', targetNutritionId, 'not found');
-                    // Try to list all documents in collection to see what's available
-                    const snapshot = await db.collection('target_nutrients').get();
-                    console.log('Available documents:', snapshot.docs.map(d => ({ id: d.id })));
+                    console.log('No target nutrition found for user. Trying default ID.');
+
+                    // Fallback to hard-coded ID as a last resort
+                    const { db } = require('../config/firebase');
+                    const targetNutritionId = 'LOjgsvV7Pl1XFUGPr5LN';
+
+                    // Try to get the document directly
+                    const docRef = db.collection('target_nutrients').doc(targetNutritionId);
+                    const doc = await docRef.get();
+
+                    if (doc.exists) {
+                        targetNutrition = { id: doc.id, ...doc.data() };
+                        console.log('Found fallback target nutrition:', targetNutrition.id);
+                    } else {
+                        console.log('Fallback target nutrition not found');
+                        // Try to list all documents in collection to see what's available
+                        const snapshot = await db.collection('target_nutrients').get();
+                        console.log('Available documents:', snapshot.docs.map(d => ({ id: d.id })));
+                    }
                 }
                 console.log('=== END DEBUG ===\n');
 

@@ -13,7 +13,7 @@ const FormData = require('form-data');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 // Configuration
-const API_URL = 'http://10.0.0.233:5000/api';
+const API_URL = 'http://10.0.146.10:5000/api';
 const IMAGE_PATH = process.argv[2] || 'C:\\Users\\USER\\Downloads\\test.jpg'; // Lấy đường dẫn ảnh từ tham số dòng lệnh
 const MEAL_TYPE = process.argv[3] || '2'; // Mặc định là 2 (bữa trưa/lunch)
 

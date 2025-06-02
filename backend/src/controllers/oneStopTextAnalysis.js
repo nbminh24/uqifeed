@@ -53,9 +53,7 @@ const OneStopTextAnalysisController = {
                 );
             }
 
-            const foodData = processingResults.foodData;
-
-            // Step 2: Save food to database
+            const foodData = processingResults.foodData;            // Step 2: Save food to database
             const food = {
                 user_id: req.user.id,
                 meal_type_id,
@@ -64,12 +62,12 @@ const OneStopTextAnalysisController = {
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
-                // Initialize nutrition values as null
-                total_protein: null,
-                total_carb: null,
-                total_fat: null,
-                total_fiber: null,
-                total_calorie: null
+                // Initialize nutrition values as 0 instead of null
+                total_protein: 0,
+                total_carb: 0,
+                total_fat: 0,
+                total_fiber: 0,
+                total_calorie: 0
             };
 
             const savedFood = await Food.save(food);
@@ -116,28 +114,42 @@ const OneStopTextAnalysisController = {
             });
 
             // Calculate calories using the utility function (already rounds to whole number)
-            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
-
-            // Update food with calculated nutrition values
+            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);            // Update food with calculated nutrition values
             const updatedFood = await Food.update(savedFood.id, {
-                total_protein: totalProtein,
-                total_carb: totalCarb,
-                total_fat: totalFat,
-                total_fiber: totalFiber,
-                total_calorie: totalCalorie
-            });
-
-            // Step 5: Get target nutrition for the user
+                total_protein: totalProtein || 0,
+                total_carb: totalCarb || 0,
+                total_fat: totalFat || 0,
+                total_fiber: totalFiber || 0,
+                total_calorie: totalCalorie || 0
+            });            // Step 5: Get target nutrition for the user
             const targetNutrition = await TargetNutrition.findByUserId(req.user.id);
 
+            // Create a default target nutrition if none exists
+            const defaultTargetNutrition = targetNutrition || {
+                id: 'default',
+                userId: req.user.id,
+                daily: {
+                    calories: 2000,
+                    protein: 50,
+                    fat: 70,
+                    carbs: 260,
+                    fiber: 25
+                },
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+
             if (!targetNutrition) {
-                // Return success without score if no target nutrition
+                console.log('No target nutrition found for user. Using default values.');
+
+                // Return success with default target nutrition
                 return sendSuccessResponse(
                     res,
-                    'Food analyzed from text and saved successfully, but no nutrition score calculated (no target nutrition)',
+                    'Food analyzed from text and saved successfully, using default target nutrition values',
                     {
                         food: updatedFood,
-                        ingredients: savedIngredients
+                        ingredients: savedIngredients,
+                        targetNutrition: defaultTargetNutrition
                     }
                 );
             }
@@ -167,46 +179,40 @@ const OneStopTextAnalysisController = {
             const savedComments = {};
             for (const nutrientType in comments) {
                 const comment = comments[nutrientType];
-                const nutritionType = nutrientType; // using the key directly
-
-                const commentData = {
-                    food_id: updatedFood.id,
+                const nutritionType = nutrientType; // using the key directly                const commentData = {
+                food_id: updatedFood.id,
                     target_nutrition_id: targetNutrition.id,
-                    nutrition_type: nutritionType,
-                    nutrition_delta: comment.percentage,
-                    nutrition_comment: comment.comment,
-                    icon: comment.icon,
-                    meal_type: meal_type_id
-                };
+                        nutrition_type: nutritionType,
+                            nutrition_delta: comment.percentage,
+                                nutrition_comment: comment.comment,
+                                    icon: comment.icon,
+                                        meal_type_id: meal_type_id // Use consistent naming: meal_type_id instead of meal_type
+            };
 
-                const nutritionComment = new NutritionComment(commentData);
-                savedComments[nutrientType] = await nutritionComment.save();
-            }
-
-            // Step 8: Return comprehensive results
+            const nutritionComment = new NutritionComment(commentData);
+            savedComments[nutrientType] = await nutritionComment.save();
+        }            // Step 8: Return comprehensive results
             return sendSuccessResponse(
-                res,
-                'Complete food text analysis successful',
-                {
-                    food: updatedFood,
-                    ingredients: savedIngredients,
-                    nutritionScore: {
-                        score: savedScore.nutrition_score,
-                        interpretation: savedScore.interpretation
-                    },
-                    nutritionComments: savedComments
-                }
-            );
+            res,
+            'Complete food text analysis successful',
+            {
+                food: updatedFood,
+                ingredients: savedIngredients,
+                nutritionScore: savedScore,
+                nutritionComments: Object.values(savedComments),
+                targetNutrition: targetNutrition
+            }
+        );
 
-        } catch (error) {
-            console.error('Error in one-stop text analysis:', error);
-            return sendErrorResponse(
-                res,
-                error.message || 'Error processing complete food text analysis',
-                500
-            );
-        }
+    } catch(error) {
+        console.error('Error in one-stop text analysis:', error);
+        return sendErrorResponse(
+            res,
+            error.message || 'Error processing complete food text analysis',
+            500
+        );
     }
+}
 };
 
 module.exports = OneStopTextAnalysisController;

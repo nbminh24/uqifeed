@@ -7,6 +7,10 @@ interface Ingredient {
     ingredient_name: string;
     ingredient_amount: number;
     ingredient_description?: Record<string, unknown>;
+    ingredient_protein?: number;
+    ingredient_carb?: number;
+    ingredient_fat?: number;
+    ingredient_fiber?: number;
 }
 
 interface IngredientProps {
@@ -17,13 +21,17 @@ export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
     const router = useRouter();
 
     const handleIngredientPress = (ingredient: Ingredient) => {
-        // Navigate to the ingredient details screen with the ingredient data
+        // Navigate to the ingredient details screen with all nutrition data
         router.push({
             pathname: '/ingredients',
             params: {
                 name: ingredient.ingredient_name,
                 amount: `${ingredient.ingredient_amount}g`,
-                description: JSON.stringify(ingredient.ingredient_description || {})
+                description: JSON.stringify(ingredient.ingredient_description || {}),
+                protein: ingredient.ingredient_protein ?? 0,
+                carb: ingredient.ingredient_carb ?? 0,
+                fat: ingredient.ingredient_fat ?? 0,
+                fiber: ingredient.ingredient_fiber ?? 0
             }
         });
     };
@@ -42,7 +50,6 @@ export const IngredientsList: React.FC<IngredientProps> = ({ ingredients }) => {
                     >
                         <ThemedText style={styles.ingredientText}>
                             {ingredient.ingredient_name}
-                            {ingredient.ingredient_amount ? ` (${ingredient.ingredient_amount}g)` : ''}
                         </ThemedText>
                     </TouchableOpacity>
                 ))}

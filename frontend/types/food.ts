@@ -8,14 +8,6 @@ export interface Ingredient {
     ingredient_carb?: number;
     ingredient_fat?: number;
     ingredient_fiber?: number;
-    // Vietnamese description fields
-    cach_dung_trong_am_thuc?: string;
-    loi_ich_dinh_duong?: string;
-    nguon_goc_mo_ta_dan_da?: string;
-    // English description fields
-    culinary_use?: string;
-    nutritional_benefits?: string;
-    description?: string;
 }
 
 export interface NutritionComment {
@@ -38,18 +30,17 @@ export interface NutritionScore {
         interpretation: {
             rating: string;
             description: string;
-        };
-        comparisons?: {
+        }; comparisons?: {
             calories: NutrientComparison;
             protein: NutrientComparison;
             fat: NutrientComparison;
             carbs: NutrientComparison;
             fiber: NutrientComparison;
-            nutritionalBalance: {
-                avgRatioDifference: number;
-                totalFoodGrams: number;
-                totalTargetGrams: number;
-            };
+        };
+        nutritionalBalance?: {
+            avgRatioDifference: number;
+            totalFoodGrams: number;
+            totalTargetGrams: number;
         };
     };
 }
@@ -68,7 +59,8 @@ export interface Food {
     id: string;
     user_id: string;
     meal_type_id: string;
-    food_name: string; food_description: string | Record<string, string>;
+    food_name: string;
+    food_description: string | Record<string, string>;
     food_advice: string | Record<string, string>;
     food_preparation: string | Record<string, string>;
     food_image?: string;
@@ -81,19 +73,7 @@ export interface Food {
     updated_at: string;
 }
 
-export interface TargetNutrition {
-    id: string;
-    userId: string;
-    daily: {
-        calories: number;
-        protein: number;
-        fat: number;
-        carbs: number;
-        fiber: number;
-    };
-    createdAt: string;
-    updatedAt: string;
-}
+import { TargetNutrition } from './targetNutrition';
 
 export interface DetailedFoodResponse {
     success: boolean;

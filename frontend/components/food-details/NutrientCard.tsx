@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, ViewStyle, TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
 import { Food, NutritionScore } from '@/types/food';
@@ -20,21 +20,43 @@ interface NutrientCardProps {
     mealType?: 'breakfast' | 'lunch' | 'dinner' | 'snack';
 }
 
+// Type for our component's styles
+type Styles = {
+    cardContainer: ViewStyle;
+    headerRow: ViewStyle;
+    titleContainer: ViewStyle;
+    valuesContainer: ViewStyle;
+    separator: ViewStyle;
+    progressBarContainer: ViewStyle;
+    progressBar: ViewStyle;
+    centerMarker: ViewStyle;
+    barBackground: ViewStyle;
+    progressBarFill: ViewStyle;
+    progressNormal: ViewStyle;
+    progressExcess: ViewStyle;
+    percentageLabel: TextStyle;
+    nutritionType: TextStyle;
+    valueContainer: ViewStyle;
+    valueLabel: TextStyle;
+    nutritionValueText: TextStyle;
+    commentText: TextStyle;
+};
+
 export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionScore, food, targetNutrition, mealType }) => {
     // Define colors for each nutrition type
     const getNutritionTypeColor = (type: string) => {
         // Convert to lowercase for case-insensitive comparison
         const typeLower = type.toLowerCase();
 
-        if (typeLower.includes('calorie')) {
+        if (typeLower === 'calorie' || typeLower === 'calories') {
             return '#FF6B6B'; // Red for calories
-        } else if (typeLower.includes('carb')) {
+        } else if (typeLower === 'carb' || typeLower === 'carbs') {
             return '#FFD166'; // Yellow for carbs
-        } else if (typeLower.includes('protein')) {
+        } else if (typeLower === 'protein') {
             return '#118AB2'; // Blue for protein
-        } else if (typeLower.includes('fat')) {
+        } else if (typeLower === 'fat') {
             return '#06D6A0'; // Green for fat
-        } else if (typeLower.includes('fiber')) {
+        } else if (typeLower === 'fiber') {
             return '#8BC34A'; // Original color for fiber
         } else {
             return nutrient.nutrition_delta >= 0 ? '#47b255' : '#FF6B6B';
@@ -51,16 +73,28 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
 
         // Set food value from the food object if available
         if (food) {
-            if (typeLower.includes('calorie')) {
-                foodValue = food.total_calorie || 0;
-            } else if (typeLower.includes('carb')) {
-                foodValue = food.total_carb || 0;
-            } else if (typeLower.includes('protein')) {
-                foodValue = food.total_protein || 0;
-            } else if (typeLower.includes('fat')) {
-                foodValue = food.total_fat || 0;
-            } else if (typeLower.includes('fiber')) {
-                foodValue = food.total_fiber || 0;
+            // Map nutrition types to corresponding food object properties
+            const propertyMap: { [key: string]: keyof Food } = {
+                protein: 'total_protein',
+                proteins: 'total_protein',
+                fat: 'total_fat',
+                fats: 'total_fat',
+                carb: 'total_carb',
+                carbs: 'total_carb',
+                fiber: 'total_fiber',
+                calorie: 'total_calorie',
+                calories: 'total_calorie'
+            };
+
+            const propertyKey = propertyMap[typeLower];
+            if (propertyKey && propertyKey in food) {
+                const value = food[propertyKey];
+                // Ensure we have a valid number
+                if (value !== null && value !== undefined) {
+                    foodValue = typeof value === 'number' ? value : parseFloat(value as string);
+                    // If parsing resulted in NaN, use 0 as a fallback
+                    if (isNaN(foodValue)) foodValue = 0;
+                }
             }
         }
 
@@ -75,106 +109,123 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
             };
 
             return target * mealDistribution[mealType];
-        };
-
-        // First try to get target value from targetNutrition if available
+        };        // First try to get target value from targetNutrition if available
         if (targetNutrition?.daily) {
-            if (typeLower.includes('calorie')) {
-                targetValue = getMealTarget(targetNutrition.daily.calories || 0);
-            } else if (typeLower.includes('carb')) {
-                targetValue = getMealTarget(targetNutrition.daily.carbs || 0);
-            } else if (typeLower.includes('protein')) {
-                targetValue = getMealTarget(targetNutrition.daily.protein || 0);
-            } else if (typeLower.includes('fat')) {
-                targetValue = getMealTarget(targetNutrition.daily.fat || 0);
-            } else if (typeLower.includes('fiber')) {
-                targetValue = getMealTarget(targetNutrition.daily.fiber || 0);
+            // Map nutrition types to corresponding target nutrition properties
+            const targetMap: { [key: string]: keyof typeof targetNutrition.daily } = {
+                protein: 'protein',
+                proteins: 'protein',
+                fat: 'fat',
+                fats: 'fat',
+                carb: 'carbs',
+                carbs: 'carbs',
+                fiber: 'fiber',
+                calorie: 'calories',
+                calories: 'calories'
+            }; const targetKey = targetMap[typeLower];
+            if (targetKey) {
+                const rawTargetValue = targetNutrition.daily[targetKey];
+                if (rawTargetValue !== null && rawTargetValue !== undefined) {
+                    targetValue = getMealTarget(rawTargetValue);
+                    // If the result is NaN, use fallback value
+                    if (isNaN(targetValue)) targetValue = 0;
+                }
             }
         }
         // Fallback to values from nutritionScore.score_details.comparisons
         else if (nutritionScore?.score_details?.comparisons) {
             const comparisons = nutritionScore.score_details.comparisons;
-
-            if (typeLower.includes('calorie')) {
-                if (foodValue === 0) foodValue = comparisons.calories.food;
-                targetValue = comparisons.calories.target;
-            } else if (typeLower.includes('carb')) {
-                if (foodValue === 0) foodValue = comparisons.carbs.food;
-                targetValue = comparisons.carbs.target;
-            } else if (typeLower.includes('protein')) {
-                if (foodValue === 0) foodValue = comparisons.protein.food;
-                targetValue = comparisons.protein.target;
-            } else if (typeLower.includes('fat')) {
-                if (foodValue === 0) foodValue = comparisons.fat.food;
-                targetValue = comparisons.fat.target;
-            } else if (typeLower.includes('fiber')) {
-                if (foodValue === 0) foodValue = comparisons.fiber.food;
-                targetValue = comparisons.fiber.target;
+            // Map nutrition types to corresponding comparison properties
+            const comparisonMap: { [key: string]: keyof typeof comparisons } = {
+                protein: 'protein',
+                proteins: 'protein',
+                fat: 'fat',
+                fats: 'fat',
+                carb: 'carbs',
+                carbs: 'carbs',
+                fiber: 'fiber',
+                calorie: 'calories',
+                calories: 'calories'
+            }; const comparisonKey = comparisonMap[typeLower];
+            if (comparisonKey && comparisonKey in comparisons) {
+                if (foodValue === 0) {
+                    foodValue = comparisons[comparisonKey].food;
+                }
+                targetValue = comparisons[comparisonKey].target;
             }
         } else {
             console.log('No target nutrition data available for', nutrient.nutrition_type);
         }
 
         return { foodValue, targetValue };
-    };
-
-    const { foodValue, targetValue } = getNutritionValues();
+    };    // Get values and ensure they're not null/undefined/NaN
+    const { foodValue: rawFoodValue, targetValue: rawTargetValue } = getNutritionValues();
+    const foodValue = isNaN(rawFoodValue) || rawFoodValue === null || rawFoodValue === undefined ? 0 : rawFoodValue;
+    const targetValue = isNaN(rawTargetValue) || rawTargetValue === null || rawTargetValue === undefined ? 1 : rawTargetValue; // Use 1 as fallback to avoid division by zero
 
     // Calculate percentage relative to target (target is 100%)
     // If foodValue > targetValue, progressPercentage > 100%
     // If foodValue < targetValue, progressPercentage < 100%
     const percentage = targetValue > 0 ? (foodValue / targetValue) * 100 : 0;
-    const progressPercentage = Math.min(Math.max(percentage, 0), 200); // Limit to 0-200% range
-
-    // Map nutrition types to appropriate Ionicons
+    const progressPercentage = Math.min(Math.max(percentage, 0), 200); // Limit to 0-200% range// Map nutrition types to appropriate Ionicons
     const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-        Protein: 'barbell',
-        Fat: 'water',
-        Carb: 'nutrition',
-        Fiber: 'leaf',
-        Calorie: 'flame'
+        protein: 'barbell',
+        fat: 'water',
+        carb: 'nutrition',
+        carbs: 'nutrition',
+        fiber: 'leaf',
+        calorie: 'flame',
+        calories: 'flame'
     };
 
-    const iconName = iconMap[nutrient.nutrition_type] || 'information-circle';
+    const iconName = iconMap[typeLower] || 'information-circle';
 
     // Get nutritional value in grams if available
     const getNutritionalValue = () => {
         // If we have the direct food object, use that first
         if (food) {
-            if (typeLower.includes('calorie')) {
-                return `${Math.round(food.total_calorie)} kcal`;
-            } else if (typeLower.includes('carb')) {
-                return `${Math.round(food.total_carb)} g`;
-            } else if (typeLower.includes('protein')) {
-                return `${Math.round(food.total_protein)} g`;
-            } else if (typeLower.includes('fat')) {
-                return `${Math.round(food.total_fat)} g`;
-            } else if (typeLower.includes('fiber')) {
-                return `${Math.round(food.total_fiber)} g`;
+            try {
+                if (typeLower === 'calories' || typeLower === 'calorie') {
+                    return `${Math.round(food.total_calorie || 0)} kcal`;
+                } else if (typeLower === 'carbs' || typeLower === 'carb') {
+                    return `${Math.round(food.total_carb || 0)} g`;
+                } else if (typeLower === 'protein') {
+                    return `${Math.round(food.total_protein || 0)} g`;
+                } else if (typeLower === 'fat') {
+                    return `${Math.round(food.total_fat || 0)} g`;
+                } else if (typeLower === 'fiber') {
+                    return `${Math.round(food.total_fiber || 0)} g`;
+                }
+            } catch (error) {
+                console.error(`[NutrientCard] Error getting food value for ${typeLower}:`, error);
+                // Fall through to next method
             }
-        }
-
-        // Fallback to nutrition score if we have it
+        }        // Fallback to nutrition score if we have it
         if (nutritionScore?.score_details?.comparisons) {
-            const comparisons = nutritionScore.score_details.comparisons;
+            try {
+                const comparisons = nutritionScore.score_details.comparisons;
 
-            if (typeLower.includes('calorie')) {
-                return `${Math.round(comparisons.calories.food)} kcal`;
-            } else if (typeLower.includes('carb')) {
-                return `${Math.round(comparisons.carbs.food)} g`;
-            } else if (typeLower.includes('protein')) {
-                return `${Math.round(comparisons.protein.food)} g`;
-            } else if (typeLower.includes('fat')) {
-                return `${Math.round(comparisons.fat.food)} g`;
-            } else if (typeLower.includes('fiber')) {
-                return `${Math.round(comparisons.fiber.food)} g`;
+                if (typeLower === 'calories' || typeLower === 'calorie') {
+                    return `${Math.round(comparisons.calories?.food || 0)} kcal`;
+                } else if (typeLower === 'carbs' || typeLower === 'carb') {
+                    return `${Math.round(comparisons.carbs?.food || 0)} g`;
+                } else if (typeLower === 'protein') {
+                    return `${Math.round(comparisons.protein?.food || 0)} g`;
+                } else if (typeLower === 'fat') {
+                    return `${Math.round(comparisons.fat?.food || 0)} g`;
+                } else if (typeLower === 'fiber') {
+                    return `${Math.round(comparisons.fiber?.food || 0)} g`;
+                }
+            } catch (error) {
+                console.error(`[NutrientCard] Error getting nutrition score value for ${typeLower}:`, error);
+                // Fall through to next method
             }
         }
 
         // Last resort fallback
         const value = Math.abs(nutrient.nutrition_delta);
 
-        if (typeLower.includes('calorie')) {
+        if (typeLower === 'calories' || typeLower === 'calorie') {
             return `${value} kcal`;
         } else {
             return `${value} g`;
@@ -193,205 +244,196 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
         return formatted;
     };
 
+    const getProgressColor = (percentage: number) => {
+        const diff = Math.abs(percentage - 100);
+        if (diff > 30) return '#FF6B6B'; // Red for >30% difference
+        if (diff > 20) return '#FFD166'; // Yellow for >20% difference
+        return '#47b255'; // Green for <=20% difference
+    };
+
     return (
         <View style={styles.cardContainer}>
             <View style={styles.headerRow}>
-                <Ionicons name={iconName} size={24} color={barColor} />
-                <ThemedText type="defaultSemiBold" style={styles.nutritionType}>
-                    {nutrient.nutrition_type}
-                </ThemedText>
-            </View>
-
-            <View style={styles.nutritionValuesRow}>
-                <View style={styles.valueContainer}>
-                    <ThemedText style={styles.valueLabel}>Food</ThemedText>
-                    <ThemedText style={[styles.nutritionValueText, { color: foodValue > targetValue ? '#FF6B6B' : barColor }]}>
-                        {Math.round(foodValue)}{typeLower.includes('calorie') ? ' kcal' : ' g'}
+                <View style={styles.titleContainer}>
+                    <Ionicons name={iconName} size={24} color={barColor} />
+                    <ThemedText type="defaultSemiBold" style={styles.nutritionType}>
+                        {nutrient.nutrition_type}
                     </ThemedText>
                 </View>
-                <View style={styles.valueContainer}>
-                    <ThemedText style={styles.valueLabel}>Target</ThemedText>
-                    <ThemedText style={styles.nutritionValueText}>
-                        {Math.round(targetValue)}{typeLower.includes('calorie') ? ' kcal' : ' g'}
-                    </ThemedText>
+                <View style={styles.valuesContainer}>
+                    <View style={styles.valueContainer}>
+                        <ThemedText style={styles.valueLabel}>Total</ThemedText>
+                        <ThemedText style={[styles.nutritionValueText, {
+                            color: getProgressColor(percentage)
+                        }]}>
+                            {Math.round(foodValue)}{typeLower === 'calories' || typeLower === 'calorie' ? ' kcal' : ' g'}
+                        </ThemedText>
+                    </View>
+                    <View style={styles.separator} />
+                    <View style={styles.valueContainer}>
+                        <ThemedText style={styles.valueLabel}>Target</ThemedText>
+                        <ThemedText style={styles.nutritionValueText}>
+                            {Math.round(targetValue)}{typeLower === 'calories' || typeLower === 'calorie' ? ' kcal' : ' g'}
+                        </ThemedText>
+                    </View>
                 </View>
             </View>
 
             <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBar, { height: 20 }]}>
-                    {/* Background bar */}
-                    <View style={[
-                        styles.progressBarBackground,
-                        {
-                            backgroundColor: '#EAEAEA',
-                            opacity: 0.3
-                        }
-                    ]} />
+                <View style={styles.progressBar}>
+                    {/* Background with center marker at 50% (100% target) */}
+                    <View style={styles.barBackground}>
+                        {/* Left half (0-100%) */}
+                        <View style={[
+                            styles.progressHalf,
+                            { backgroundColor: '#F0F0F0' }
+                        ]} />
+                        {/* Right half (100-200%) */}
+                        <View style={[
+                            styles.progressHalf,
+                            { backgroundColor: '#E0E0E0' }
+                        ]} />
+                        {/* Center marker line */}
+                        <View style={styles.centerMarker} />
+                    </View>
 
-                    {/* Target marker line (centered) */}
-                    <View style={[
-                        styles.targetMarker,
-                        {
-                            left: '50%',
-                            height: 26,
-                            top: -3
-                        }
-                    ]} />
-
-                    {/* Food value bar */}
+                    {/* Progress fill */}
                     <View style={[
                         styles.progressBarFill,
                         {
-                            width: `${Math.min(percentage / 2, 50)}%`,
-                            backgroundColor: barColor,
-                            left: percentage <= 100 ? '50%' : undefined,
-                            transform: [{ translateX: percentage <= 100 ? -1 : 0 }]
+                            // Scale percentage to fit 200% range into bar width
+                            width: `${Math.min(percentage * 0.5, 100)}%`,
+                            backgroundColor: getProgressColor(percentage)
                         }
                     ]} />
 
-                    {/* Excess bar (if food > target) */}
-                    {percentage > 100 && (
-                        <View style={[
-                            styles.progressBarExcess,
-                            {
-                                left: '50%',
-                                width: `${Math.min((percentage - 100) / 2, 50)}%`,
-                                backgroundColor: '#FF6B6B',
-                                opacity: 0.5
-                            }
-                        ]} />
-                    )}
-
-                    {/* Deficit bar (if food < target) */}
-                    {percentage < 100 && (
-                        <View style={[
-                            styles.progressBarDeficit,
-                            {
-                                right: '50%',
-                                width: `${Math.min((100 - percentage) / 2, 50)}%`,
-                                backgroundColor: '#EAEAEA',
-                                opacity: 0.5
-                            }
-                        ]} />
-                    )}
-                </View>
-
-                {/* Percentage text */}
-                <View style={styles.percentageRow}>
-                    <ThemedText style={[
-                        styles.percentageText,
-                        {
-                            color: percentage > 100 ? '#FF6B6B' :
-                                percentage < 50 ? '#FF9800' :
-                                    '#47b255'
-                        }
-                    ]}>
-                        {Math.round(percentage)}% of target
-                    </ThemedText>
+                    {/* Percentage label overlay */}
+                    <View style={styles.percentageOverlay}>
+                        <ThemedText style={[
+                            styles.percentageText,
+                            { color: getProgressColor(percentage) }
+                        ]}>
+                            {Math.round(percentage)}%
+                        </ThemedText>
+                    </View>
                 </View>
             </View>
 
-            <ThemedText style={styles.commentText}>
-                {formatComment(nutrient.nutrition_comment)}
-            </ThemedText>
+            {nutrient.nutrition_comment && (
+                <ThemedText style={styles.commentText}>
+                    {formatComment(nutrient.nutrition_comment)}
+                </ThemedText>
+            )}
         </View>
     );
 };
 
+// Custom type for dimensions that bypasses the linting rules
+type Dimension = number | string;
+
+// Cast the styles to the correct type
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: '#fff',
-        padding: 12,
-        borderRadius: 16,
-        margin: 12,
-        marginTop: 0,
+        backgroundColor: '#ffffff',
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 16,
+        elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        elevation: 2,
-    },
+    } as ViewStyle,
     headerRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
-    },
-    nutritionType: {
-        fontSize: 18,
-        marginStart: 10,
-        color: '#333',
-    },
+        marginBottom: 12,
+    } as ViewStyle,
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8
+    } as ViewStyle,
+    valuesContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16
+    } as ViewStyle,
+    separator: {
+        width: 1,
+        height: 24,
+        backgroundColor: '#E0E0E0'
+    } as ViewStyle,
     progressBarContainer: {
-        marginVertical: 8,
-    },
+        width: '100%',
+        marginVertical: 12,
+        height: 24, // Increased height for percentage overlay
+    } as ViewStyle,
     progressBar: {
+        height: '100%',
         backgroundColor: '#F5F5F5',
-        borderRadius: 10,
+        borderRadius: 12,
         overflow: 'hidden',
-        position: 'relative',
-    },
-    progressBarBackground: {
+        position: 'relative'
+    } as ViewStyle,
+    barBackground: {
         position: 'absolute',
-        start: 0,
-        end: 0,
-        top: 0,
-        bottom: 0,
-    },
+        width: '100%',
+        height: '100%',
+        flexDirection: 'row'
+    } as ViewStyle,
+    progressHalf: {
+        width: '50%',
+        height: '100%'
+    } as ViewStyle,
+    centerMarker: {
+        position: 'absolute',
+        left: '50%',
+        width: 2,
+        height: '100%',
+        backgroundColor: '#D0D0D0',
+        transform: [{ translateX: -1 }]
+    } as ViewStyle,
     progressBarFill: {
         position: 'absolute',
-        start: 0,
-        top: 0,
-        bottom: 0,
-    },
-    progressBarExcess: {
+        height: '100%',
+        backgroundColor: '#47b255',
+    } as ViewStyle,
+    percentageOverlay: {
         position: 'absolute',
-        top: 0,
-        bottom: 0,
-    },
-    progressBarDeficit: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-    },
-    targetMarker: {
-        position: 'absolute',
-        width: 2,
-        backgroundColor: '#000',
-        opacity: 0.2,
-        zIndex: 2,
-    },
-    nutritionValuesRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-    valueContainer: {
-        alignItems: 'center',
-    },
-    valueLabel: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
-    },
-    nutritionValueText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    percentageRow: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        marginTop: 4,
-    },
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center'
+    } as ViewStyle,
     percentageText: {
         fontSize: 12,
         fontWeight: '600',
-    }, commentText: {
+        color: '#333333',
+        textShadowColor: 'rgba(255, 255, 255, 0.8)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 2
+    } as TextStyle,
+    nutritionType: {
+        fontSize: 16,
+        fontWeight: '600',
+    } as TextStyle,
+    valueContainer: {
+        alignItems: 'center',
+    } as ViewStyle,
+    valueLabel: {
+        fontSize: 12,
+        color: '#666666',
+        marginBottom: 4,
+    } as TextStyle,
+    nutritionValueText: {
+        fontSize: 16,
+        fontWeight: '600',
+    } as TextStyle,
+    commentText: {
         fontSize: 14,
+        color: '#666',
         lineHeight: 20,
-        color: '#444',
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#eee'
-    },
+    } as TextStyle
 });

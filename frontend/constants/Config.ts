@@ -1,6 +1,11 @@
-// You can change this to your computer's IP address when testing on real device
+// Handle different development environments
 export const API_URL = __DEV__
-    ? 'http://10.0.0.233:5000'  // Development - your computer's IP
+    ? 'http://10.0.146.10:5000'  // Local development server (updated to match current IP)
     : 'https://your-production-api.com'; // Production
 
-export const getApiUrl = (endpoint: string) => `${API_URL}${endpoint}`;
+// Helper function to build API URLs
+export const getApiUrl = (endpoint: string) => {
+    const url = `${API_URL}${endpoint}`;
+    console.log('[Config] API Request URL:', url);
+    return url;
+};

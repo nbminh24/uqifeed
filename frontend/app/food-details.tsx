@@ -19,6 +19,7 @@ import {
 } from '@/components/food-details';
 import { foodService } from '@/services/foodService';
 import { DetailedFoodResponse } from '@/types/food';
+import { getMealTypeString } from '@/utils/mealTypeHelper';
 
 const DEFAULT_FOOD_ID = 'm1nI1QwutJ5E07s4dEIr';
 
@@ -40,15 +41,22 @@ export default function FoodDetailsScreen() {
                 success: response.success,
                 message: response.message,
                 hasData: !!response.data
-            });
-
-            if (response.success) {
+            }); if (response.success) {
                 console.log('[FoodDetails] Food data:', {
                     food_name: response.data.food.food_name,
                     has_preparation: !!response.data.food.food_preparation,
                     preparation_type: typeof response.data.food.food_preparation,
                     preparation_data: response.data.food.food_preparation
                 });
+
+                // Log targetNutrition for debugging
+                console.log('[FoodDetails] Target nutrition data:', {
+                    hasTargetNutrition: !!response.data.targetNutrition,
+                    targetNutritionType: typeof response.data.targetNutrition,
+                    hasDaily: response.data.targetNutrition && !!response.data.targetNutrition.daily,
+                    dailyValues: response.data.targetNutrition?.daily
+                });
+
                 setFoodDetails(response.data);
             } else {
                 setError(response.message);
@@ -69,6 +77,8 @@ export default function FoodDetailsScreen() {
         fetchFoodDetails();
     };
 
+    // Using the getMealTypeString helper function imported from utils/mealTypeHelper.ts
+
     if (loading) {
         return (
             <ThemedView style={styles.container}>
@@ -85,11 +95,32 @@ export default function FoodDetailsScreen() {
                 <Text style={styles.errorText}>{error || 'Food not found'}</Text>
                 <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
                     <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>            </ThemedView>
+                </TouchableOpacity>
+            </ThemedView>
         );
     }
+    const { food, ingredients, nutritionComments, nutritionScore, targetNutrition: rawTargetNutrition } = foodDetails;
 
-    const { food, ingredients, nutritionComments, nutritionScore, targetNutrition } = foodDetails;
+    // Create a default target nutrition if none exists
+    const targetNutrition = rawTargetNutrition || {
+        id: 'default',
+        userId: 'default',
+        daily: {
+            calories: 2000,
+            protein: 50,
+            fat: 70,
+            carbs: 260,
+            fiber: 25
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+
+    // Log target nutrition for debugging
+    console.log('[FoodDetails] Using target nutrition:', {
+        isDefault: !rawTargetNutrition,
+        dailyValues: targetNutrition.daily
+    });
 
     return (
         <ThemedView style={styles.container}>
@@ -98,36 +129,41 @@ export default function FoodDetailsScreen() {
                     title={food.food_name}
                     date={new Date(food.created_at).toLocaleDateString()}
                     useAsNavigationHeader={true}
-                />
-                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
+                />                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
                     <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-                </FoodImage>
-                <CaloriesAndMacros
-                    calories={food.total_calorie}
-                    protein={food.total_protein}
-                    carbs={food.total_carb}
-                    fats={food.total_fat}
+                </FoodImage>                <CaloriesAndMacros
+                    calories={food.total_calorie || 0}
+                    protein={food.total_protein || 0}
+                    carbs={food.total_carb || 0}
+                    fats={food.total_fat || 0}
                 />
-                <IngredientsList ingredients={ingredients} />
-                {foodDetails.nutritionComments.sort((a, b) => {
+                <IngredientsList ingredients={ingredients} />                {nutritionComments.sort((a, b) => {
                     const order = {
-                        'Calorie': 1,
-                        'Protein': 2,
-                        'Fat': 3,
-                        'Carb': 4,
-                        'Fiber': 5
+                        'calories': 1,
+                        'calorie': 1,
+                        'total_calorie': 1,
+                        'protein': 2,
+                        'proteins': 2,
+                        'total_protein': 2,
+                        'fat': 3,
+                        'fats': 3,
+                        'total_fat': 3,
+                        'carbs': 4,
+                        'carb': 4,
+                        'total_carb': 4,
+                        'fiber': 5,
+                        'total_fiber': 5
                     };
-                    const orderA = order[a.nutrition_type as keyof typeof order] || 99;
-                    const orderB = order[b.nutrition_type as keyof typeof order] || 99;
+                    const orderA = order[a.nutrition_type.toLowerCase() as keyof typeof order] || 99;
+                    const orderB = order[b.nutrition_type.toLowerCase() as keyof typeof order] || 99;
                     return orderA - orderB;
                 }).map((comment, index) => (
                     <NutrientCard
                         key={index}
-                        nutrient={comment}
-                        nutritionScore={nutritionScore}
+                        nutrient={comment} nutritionScore={nutritionScore}
                         food={food}
-                        targetNutrition={foodDetails.targetNutrition}
-                        mealType={food.meal_type_id as 'breakfast' | 'lunch' | 'dinner' | 'snack'}
+                        targetNutrition={targetNutrition}
+                        mealType={getMealTypeString(food.meal_type_id)}
                     />
                 ))}
                 <FoodDescriptionInfo food_description={food.food_description} />
@@ -137,7 +173,6 @@ export default function FoodDetailsScreen() {
         </ThemedView>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,

@@ -1,36 +1,27 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-
+import { IngredientDetail } from '@/components/ingredients';
 import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/Button';
-import {
-    IngredientHeader,
-    IngredientAmount,
-    NutritionInfo,
-    DescriptionSection
-} from '@/components/ingredients';
 
 export default function IngredientScreen() {
     const params = useLocalSearchParams();
-    console.log('Received params:', params); // Debug log
-
     const ingredientName = params.name as string;
     const ingredientAmount = params.amount as string;
     const rawDescription = params.description ? JSON.parse(params.description as string) : {};
-    console.log('Parsed description:', rawDescription); // Debug log
+
+    // Parse nutrition values from the URL parameters
+    const nutritionInfo = {
+        carb: Number(params.carb) || 0,
+        fat: Number(params.fat) || 0,
+        protein: Number(params.protein) || 0,
+        fiber: Number(params.fiber) || 0
+    };
 
     const ingredientDescription = {
         culinaryUse: rawDescription['Cách dùng trong ẩm thực'] || '',
         nutritionalBenefits: rawDescription['Lợi ích dinh dưỡng'] || '',
         originDescription: rawDescription['Nguồn gốc & mô tả dân dã'] || ''
-    };
-
-    const nutritionInfo = {
-        carb: 10,
-        fat: 1,
-        protein: 2,
-        fiber: 2
     };
 
     return (
@@ -41,61 +32,21 @@ export default function IngredientScreen() {
                     headerShadowVisible: false,
                 }}
             />
-            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                <IngredientHeader
+            <ScrollView>
+                <IngredientDetail
                     name={ingredientName}
-                    createdAt={new Date().toLocaleDateString()}
-                />
-
-                <IngredientAmount
                     amount={ingredientAmount}
-                />
-
-                <NutritionInfo
                     nutritionInfo={nutritionInfo}
-                />                <DescriptionSection
-                    title="Culinary Use"
-                    description={ingredientDescription.culinaryUse || 'Chưa có thông tin về cách dùng trong ẩm thực.'}
+                    description={ingredientDescription}
+                    createdAt=""
                 />
-
-                <DescriptionSection
-                    title="Nutritional Benefits"
-                    description={ingredientDescription.nutritionalBenefits || 'Chưa có thông tin về lợi ích dinh dưỡng.'}
-                />
-
-                <DescriptionSection
-                    title="Origin Description"
-                    description={ingredientDescription.originDescription || 'Chưa có thông tin về nguồn gốc và mô tả.'}
-                />
-
-                <View style={styles.bottomPadding} />
             </ScrollView>
         </ThemedView>
     );
 }
 
-// ✅ styles đặt ngoài component
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9f9f9',
-    },
-    scrollView: {
-        flex: 1,
-        width: '100%',
-        paddingHorizontal: 16,
-        paddingTop: 10,
-    },
-    actionButtonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    actionButton: {
-        minWidth: 120,
-    },
-    bottomPadding: {
-        height: 40,
     },
 });
