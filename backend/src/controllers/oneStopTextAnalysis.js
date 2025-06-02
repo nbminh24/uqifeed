@@ -179,40 +179,42 @@ const OneStopTextAnalysisController = {
             const savedComments = {};
             for (const nutrientType in comments) {
                 const comment = comments[nutrientType];
-                const nutritionType = nutrientType; // using the key directly                const commentData = {
-                food_id: updatedFood.id,
+                const nutritionType = nutrientType; // using the key directly
+                const commentData = {
+                    food_id: updatedFood.id,
                     target_nutrition_id: targetNutrition.id,
-                        nutrition_type: nutritionType,
-                            nutrition_delta: comment.percentage,
-                                nutrition_comment: comment.comment,
-                                    icon: comment.icon,
-                                        meal_type_id: meal_type_id // Use consistent naming: meal_type_id instead of meal_type
-            };
+                    nutrition_type: nutritionType,
+                    nutrition_delta: comment.percentage,
+                    nutrition_comment: comment.comment,
+                    icon: comment.icon,
+                    meal_type_id: meal_type_id // Use consistent naming: meal_type_id instead of meal_type
+                };
 
-            const nutritionComment = new NutritionComment(commentData);
-            savedComments[nutrientType] = await nutritionComment.save();
-        }            // Step 8: Return comprehensive results
-            return sendSuccessResponse(
-            res,
-            'Complete food text analysis successful',
-            {
-                food: updatedFood,
-                ingredients: savedIngredients,
-                nutritionScore: savedScore,
-                nutritionComments: Object.values(savedComments),
-                targetNutrition: targetNutrition
+                const nutritionComment = new NutritionComment(commentData);
+                savedComments[nutrientType] = await nutritionComment.save();
             }
-        );
+            // Step 8: Return comprehensive results
+            return sendSuccessResponse(
+                res,
+                'Complete food text analysis successful',
+                {
+                    food: updatedFood,
+                    ingredients: savedIngredients,
+                    nutritionScore: savedScore,
+                    nutritionComments: Object.values(savedComments),
+                    targetNutrition: targetNutrition
+                }
+            );
 
-    } catch(error) {
-        console.error('Error in one-stop text analysis:', error);
-        return sendErrorResponse(
-            res,
-            error.message || 'Error processing complete food text analysis',
-            500
-        );
+        } catch (error) {
+            console.error('Error in one-stop text analysis:', error);
+            return sendErrorResponse(
+                res,
+                error.message || 'Error processing complete food text analysis',
+                500
+            );
+        }
     }
-}
 };
 
 module.exports = OneStopTextAnalysisController;
