@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 
 interface FoodPreparationProps {
-    food_preparation: string | Record<string, string>;
+    food_preparation: string | Record<string, string[] | string>;
 }
 
 export const FoodPreparation: React.FC<FoodPreparationProps> = ({ food_preparation }) => {
@@ -11,34 +11,64 @@ export const FoodPreparation: React.FC<FoodPreparationProps> = ({ food_preparati
         return null;
     }
 
-    const splitIntoSteps = (text: string | undefined) => {
-        if (typeof text !== 'string' || !text || text.trim() === '') return [];
-
-        // First try to split by numbered steps (1., 2., etc)
-        let steps = text.split(/\d+\.\s+/);
-
-        // If no numbered steps found, split by sentences
-        if (steps.length <= 1) {
-            steps = text.split(/(?<=[.!?])\s+/);
-        }
-
-        return steps
-            .map(step => step.trim())
-            .filter(step => step.length > 0);
+    const keyMappings: Record<string, string> = {
+        "Cách làm": "Preparation Steps",
+        "Cách chế biến": "Cooking Method",
+        "Lưu ý": "Notes",
+        "Thời gian": "Time Required",
+        "Nhiệt độ": "Temperature",
+        // Keep English keys as-is
+        "Preparation Steps": "Preparation Steps",
+        "Cooking Method": "Cooking Method",
+        "Notes": "Notes",
+        "Time Required": "Time Required",
+        "Temperature": "Temperature"
     };
 
-    const renderSteps = (steps: string[]) => (
-        <View style={styles.stepsContainer}>
-            {steps.map((step, index) => (
-                <View key={index} style={styles.stepContainer}>
-                    <ThemedText style={styles.stepNumber}>{index + 1}.</ThemedText>
-                    <ThemedText style={[styles.descriptionText, styles.stepText]}>
-                        {step}
-                    </ThemedText>
+    const renderSteps = (steps: string[] | string) => {
+        if (Array.isArray(steps)) {
+            return (
+                <View style={styles.stepsContainer}>
+                    {steps.map((step, index) => (
+                        <View key={index} style={styles.stepContainer}>
+                            <ThemedText style={styles.stepBullet}>•</ThemedText>
+                            <ThemedText style={[styles.descriptionText, styles.stepText]}>
+                                {step}
+                            </ThemedText>
+                        </View>
+                    ))}
                 </View>
-            ))}
-        </View>
-    );
+            );
+        }
+
+        // If it's a string, split it into steps
+        const textSteps = steps.split(/(?<=[.!?])\s+/).filter(step => step.trim().length > 0);
+        return (
+            <View style={styles.stepsContainer}>
+                {textSteps.map((step, index) => (
+                    <View key={index} style={styles.stepContainer}>
+                        <ThemedText style={styles.stepBullet}>•</ThemedText>
+                        <ThemedText style={[styles.descriptionText, styles.stepText]}>
+                            {step}
+                        </ThemedText>
+                    </View>
+                ))}
+            </View>
+        );
+    };
+
+    const renderSection = (title: string, content: string[] | string) => {
+        if (!content || (Array.isArray(content) && content.length === 0)) return null;
+
+        return (
+            <View key={title} style={styles.sectionContainer}>
+                <ThemedText style={styles.descriptionSubtitle}>
+                    {title}
+                </ThemedText>
+                {renderSteps(content)}
+            </View>
+        );
+    };
 
     return (
         <View style={styles.section}>
@@ -47,21 +77,12 @@ export const FoodPreparation: React.FC<FoodPreparationProps> = ({ food_preparati
                 <>
                     {Object.entries(food_preparation).map(([key, value]) => {
                         if (!value) return null;
-                        const steps = splitIntoSteps(value);
-                        if (steps.length === 0) return null;
-
-                        return (
-                            <View key={key} style={styles.sectionContainer}>
-                                <ThemedText style={styles.descriptionSubtitle}>
-                                    {key}
-                                </ThemedText>
-                                {renderSteps(steps)}
-                            </View>
-                        );
+                        const englishTitle = keyMappings[key] || key;
+                        return renderSection(englishTitle, value);
                     })}
                 </>
             ) : (
-                renderSteps(splitIntoSteps(String(food_preparation)))
+                renderSection('Preparation Steps', food_preparation)
             )}
         </View>
     );
@@ -95,11 +116,13 @@ const styles = StyleSheet.create({
     descriptionText: {
         fontSize: 15,
         color: '#444',
-        lineHeight: 20,
+        lineHeight: 24,
+        flex: 1,
+        paddingRight: 8,
     },
     descriptionSubtitle: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '600',
         color: '#333',
         marginBottom: 8,
     },
@@ -111,16 +134,14 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         alignItems: 'flex-start',
     },
-    stepNumber: {
-        fontSize: 15,
-        color: '#444',
-        width: 28,
-        fontWeight: '600',
+    stepBullet: {
+        width: 20,
         marginRight: 8,
-        lineHeight: 20,
+        color: '#333',
+        fontSize: 25,
+        lineHeight: 24,
     },
     stepText: {
-        flex: 1,
-        paddingRight: 8,
-    },
+        fontWeight: '400',
+    }
 });

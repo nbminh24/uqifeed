@@ -32,21 +32,29 @@ export default function FoodDetailsScreen() {
         try {
             setLoading(true);
             setError(null);
-
-            // Use default ID if none is provided
             const foodId = id ? String(id) : DEFAULT_FOOD_ID;
-            console.log('Fetching food with ID:', foodId);
-
+            console.log('[FoodDetails] Fetching food with ID:', foodId);
             const response = await foodService.getDetailedFood(foodId);
 
+            console.log('[FoodDetails] Response received:', {
+                success: response.success,
+                message: response.message,
+                hasData: !!response.data
+            });
+
             if (response.success) {
-                console.log('Food Details Response received successfully');
+                console.log('[FoodDetails] Food data:', {
+                    food_name: response.data.food.food_name,
+                    has_preparation: !!response.data.food.food_preparation,
+                    preparation_type: typeof response.data.food.food_preparation,
+                    preparation_data: response.data.food.food_preparation
+                });
                 setFoodDetails(response.data);
             } else {
                 setError(response.message);
             }
         } catch (err) {
-            console.error('Error fetching food details:', err);
+            console.error('[FoodDetails] Error fetching food details:', err);
             setError(err instanceof Error ? err.message : 'Failed to fetch food details');
         } finally {
             setLoading(false);
