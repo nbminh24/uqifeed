@@ -3,41 +3,30 @@ import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator, Alert, Pl
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Camera } from 'expo-camera';
 
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button } from '@/components/ui/Button';
 import { ButtonWithIcon } from '@/components/ui/ButtonWithIcon';
-import { imageAnalysisService } from '@/services/imageAnalysisService';
-import { mealTypeService } from '@/services/mealTypeService';
-import { NormalizedMealType, normalizeMealTypes } from '@/utils/mealTypeNormalizer';
 
 export default function ImageAnalyzeScreen() {
     const router = useRouter();
-    const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-    const [libraryPermission, setLibraryPermission] = useState<boolean | null>(null);
+    const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    const [capturedImageBase64, setCapturedImageBase64] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
     const [showCamera, setShowCamera] = useState<boolean>(false);
-    const [mealTypes, setMealTypes] = useState<NormalizedMealType[]>([]);
-    const [selectedMealTypeId, setSelectedMealTypeId] = useState<string>('');
-    const [loadingMealTypes, setLoadingMealTypes] = useState<boolean>(false);
-    const cameraRef = useRef<CameraView>(null);
-
-    useEffect(() => {
+    const cameraRef = useRef<Camera | null>(null);useEffect(() => {
         (async () => {
-            if (!cameraPermission?.granted) {
-                await requestCameraPermission();
-            }
-
+            const { status: cameraStatus } = await Camera.requestCameraPermissionsAsync();
             const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            setLibraryPermission(libraryStatus === 'granted');
 
-            if (!cameraPermission?.granted || libraryStatus !== 'granted') {
+            setHasPermission(
+                cameraStatus === 'granted' && libraryStatus === 'granted'
+            );
+
+            if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
                 Alert.alert(
                     'Permissions Required',
                     'Camera and photo library permissions are required for this app to function properly.',
@@ -45,32 +34,6 @@ export default function ImageAnalyzeScreen() {
                 );
             }
         })();
-    }, [cameraPermission, requestCameraPermission]);
-
-    // Load meal types when component mounts
-    useEffect(() => {
-        const fetchMealTypes = async () => {
-            try {
-                setLoadingMealTypes(true);
-                const response = await mealTypeService.getAllMealTypes();
-                if (response.success && response.data.mealTypes) {
-                    const normalizedMealTypes = normalizeMealTypes(response.data.mealTypes);
-                    setMealTypes(normalizedMealTypes);
-                    // Set initial meal type ID (first one in the list)
-                    if (normalizedMealTypes.length > 0 && !selectedMealTypeId) {
-                        setSelectedMealTypeId(normalizedMealTypes[0].id);
-                    }
-                    console.log('[ImageAnalyze] Loaded meal types:', normalizedMealTypes);
-                }
-            } catch (err) {
-                console.error('[ImageAnalyze] Error loading meal types:', err);
-                setError('Could not load meal types');
-            } finally {
-                setLoadingMealTypes(false);
-            }
-        };
-
-        fetchMealTypes();
     }, []);
 
     const takePicture = async () => {
@@ -81,9 +44,6 @@ export default function ImageAnalyzeScreen() {
                     base64: true,
                 });
                 setCapturedImage(photo.uri);
-                if (photo.base64) {
-                    setCapturedImageBase64(`data:image/jpeg;base64,${photo.base64}`);
-                }
                 setShowCamera(false);
             } catch (error) {
                 console.error('Error taking picture:', error);
@@ -104,10 +64,6 @@ export default function ImageAnalyzeScreen() {
 
             if (!result.canceled && result.assets && result.assets.length > 0) {
                 setCapturedImage(result.assets[0].uri);
-                const base64Image = result.assets[0].base64;
-                if (base64Image) {
-                    setCapturedImageBase64(`data:image/jpeg;base64,${base64Image}`);
-                }
             }
         } catch (error) {
             console.error('Error picking image:', error);
@@ -116,34 +72,20 @@ export default function ImageAnalyzeScreen() {
     };
 
     const analyzeImage = async () => {
-        if (!capturedImageBase64 || !selectedMealTypeId) {
-            setError('Please capture an image and select a meal type');
-            return;
-        }
+        if (!capturedImage) return;
 
-        setError('');
         setIsLoading(true);
 
         try {
-            const analysisResponse = await imageAnalysisService.analyzeImage(
-                capturedImageBase64,
-                selectedMealTypeId
-            );
+            // TODO: Implement API call to analyze the image
+            // For now, we'll just simulate a delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            if (!analysisResponse.data?.food?.id) {
-                throw new Error('Could not process food data. Please try again');
-            }
-
-            const foodId = analysisResponse.data.food.id;
-
-            // Navigate to the food details screen with the analyzed data
-            router.push({
-                pathname: '/food-details',
-                params: { id: foodId }
-            });
-        } catch (error: any) {
+            // Navigate to food details screen with the analyzed data
+            router.push('/food-details');
+        } catch (error) {
             console.error('Error analyzing image:', error);
-            setError(error.message || 'Failed to analyze image. Please try again.');
+            Alert.alert('Error', 'Failed to analyze image. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -157,9 +99,11 @@ export default function ImageAnalyzeScreen() {
         }
     }; const toggleCameraType = () => {
         setCameraType(current => (
-            current === 'back' ? 'front' : 'back'
+            current === CameraType.back ? CameraType.front : CameraType.back
         ));
-    }; if (cameraPermission === null || libraryPermission === null) {
+    };
+
+    if (hasPermission === null) {
         return (
             <ThemedView style={styles.container}>
                 <ActivityIndicator size="large" color="#163166" />
@@ -168,9 +112,10 @@ export default function ImageAnalyzeScreen() {
         );
     }
 
-    if (!cameraPermission?.granted || !libraryPermission) {
+    if (hasPermission === false) {
         return (
-            <ThemedView style={styles.container}>                <Ionicons name="alert-circle" size={48} color="#FF6B6B" />
+            <ThemedView style={styles.container}>
+                <Ionicons name="alert-circle" size={48} color="#FF6B6B" />
                 <ThemedText style={styles.permissionText}>
                     No access to camera or photo library. Please enable permissions in your device settings.
                 </ThemedText>
@@ -181,7 +126,7 @@ export default function ImageAnalyzeScreen() {
     return (
         <ThemedView style={styles.container}>
             <Stack.Screen options={{
-                title: 'Image Analysis',
+                title: 'Image Analyze',
                 headerShown: true,
                 headerStyle: {
                     backgroundColor: '#163166',
@@ -189,22 +134,17 @@ export default function ImageAnalyzeScreen() {
                 headerTintColor: '#fff',
             }} />
 
-            {error ? (
-                <ThemedText style={styles.errorText}>{error}</ThemedText>
-            ) : null}
-
             {showCamera ? (
-                <View style={styles.cameraContainer}>
-                    <CameraView
-                        ref={cameraRef}
-                        style={styles.camera}
-                        facing={cameraType}
-                        ratio="4:3"
-                    />
+                <View style={styles.cameraContainer}>                    <Camera
+                    ref={cameraRef}
+                    style={styles.camera}
+                    type={cameraType}
+                    ratio="4:3"
+                />
                     <View style={styles.cameraControls}>
                         <TouchableOpacity
                             style={styles.cameraButton}
-                            onPress={() => setShowCamera(false)}
+                            onPress={toggleCamera}
                         >
                             <Ionicons name="close" size={28} color="#fff" />
                         </TouchableOpacity>
@@ -227,69 +167,20 @@ export default function ImageAnalyzeScreen() {
             ) : capturedImage ? (
                 <View style={styles.previewContainer}>
                     <Image source={{ uri: capturedImage }} style={styles.previewImage} />
-                    <View style={styles.previewContent}>
-                        {/* Meal Type Selection */}
-                        <View style={styles.mealTypeSection}>
-                            <ThemedText style={styles.sectionTitle}>Select Meal Type</ThemedText>
-                            <ThemedText style={styles.helperText}>
-                                Choosing the right meal type helps get accurate nutritional recommendations
-                            </ThemedText>
-
-                            {loadingMealTypes ? (
-                                <ActivityIndicator size="small" color="#163166" style={styles.loading} />
-                            ) : (
-                                <View style={styles.mealTypeContainer}>
-                                    {mealTypes.map((mealType) => {
-                                        const isSelected = selectedMealTypeId === mealType.id;
-                                        return (
-                                            <TouchableOpacity
-                                                key={mealType.originalId}
-                                                style={[
-                                                    styles.mealTypeButton,
-                                                    isSelected && styles.selectedMealType
-                                                ]}
-                                                onPress={() => {
-                                                    setSelectedMealTypeId(mealType.id);
-                                                }}
-                                            >
-                                                <ThemedText
-                                                    style={[
-                                                        styles.mealTypeText,
-                                                        isSelected && styles.selectedMealTypeText
-                                                    ]}
-                                                >
-                                                    {mealType.name}
-                                                </ThemedText>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
-                            )}
-                        </View>
-
-                        {error ? (
-                            <ThemedText style={styles.errorText}>{error}</ThemedText>
-                        ) : null}
-
-                        <View style={styles.previewControls}>
-                            <Button
-                                title="Discard"
-                                type="secondary"
-                                onPress={() => {
-                                    setCapturedImage(null);
-                                    setCapturedImageBase64(null);
-                                }}
-                                style={styles.previewButton}
-                            />
-                            <Button
-                                title={isLoading ? "Analyzing..." : "Analyze Food"}
-                                onPress={analyzeImage}
-                                disabled={isLoading || !selectedMealTypeId}
-                                style={[styles.previewButton, styles.analyzeButton]}
-                            />
-                        </View>
+                    <View style={styles.previewControls}>
+                        <Button
+                            title="Discard"
+                            type="secondary"
+                            onPress={() => setCapturedImage(null)}
+                            style={styles.previewButton}
+                        />
+                        <Button
+                            title={isLoading ? "Analyzing..." : "Analyze Food"}
+                            onPress={analyzeImage}
+                            disabled={isLoading}
+                            style={[styles.previewButton, styles.analyzeButton]}
+                        />
                     </View>
-
                     {isLoading && (
                         <ActivityIndicator
                             size="large"
@@ -308,7 +199,7 @@ export default function ImageAnalyzeScreen() {
                     <View style={styles.buttonContainer}>
                         <ButtonWithIcon
                             title="Take Photo"
-                            onPress={() => setShowCamera(true)}
+                            onPress={toggleCamera}
                             icon={<Ionicons name="camera" size={24} color="#fff" />}
                             type="primary"
                         />
@@ -454,66 +345,19 @@ const styles = StyleSheet.create({
         width: '100%',
         position: 'relative',
     },
-    previewContent: {
-        flex: 1,
-        padding: 16,
-        backgroundColor: '#fff',
-    },
     previewImage: {
-        height: 300,
-        width: '100%',
-        resizeMode: 'cover',
-    },
-    mealTypeSection: {
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    helperText: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
-    },
-    mealTypeContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginBottom: 20,
-    },
-    mealTypeButton: {
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        marginRight: 10,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#ddd',
-    },
-    selectedMealType: {
-        backgroundColor: '#163166',
-        borderColor: '#163166',
-    },
-    mealTypeText: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#444',
-    },
-    selectedMealTypeText: {
-        color: '#fff',
-    },
-    loading: {
-        marginVertical: 20,
+        flex: 1,
+        resizeMode: 'contain',
     },
     previewControls: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         flexDirection: 'row',
         justifyContent: 'space-around',
         padding: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        paddingTop: 10,
     },
     previewButton: {
         flex: 1,
@@ -531,12 +375,5 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    errorText: {
-        color: '#dc3545',
-        fontSize: 14,
-        marginBottom: 8,
-        textAlign: 'center',
     }
 });
-
