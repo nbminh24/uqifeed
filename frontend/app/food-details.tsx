@@ -129,9 +129,9 @@ export default function FoodDetailsScreen() {
                     title={food.food_name}
                     date={new Date(food.created_at).toLocaleDateString()}
                     useAsNavigationHeader={true}
-                />                <FoodImage imageUrl={"https://huongpho.com.vn/wp-content/uploads/2019/11/cach-lam-suon-cuu-nuong-la-thom-4.jpg"}>
+                />                <FoodImage imageUrl={food.food_image}>
                     <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-                </FoodImage>                <CaloriesAndMacros
+                </FoodImage><CaloriesAndMacros
                     calories={food.total_calorie || 0}
                     protein={food.total_protein || 0}
                     carbs={food.total_carb || 0}

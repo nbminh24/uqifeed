@@ -29,9 +29,11 @@ app.use(cookieParser());
 
 // Import routes
 const indexRoutes = require('./routes/index');
+const testRoutes = require('./routes/test'); // Add test routes
 
 // Use routes
 app.use('/', indexRoutes);
+app.use('/api/test', testRoutes); // Add test routes
 
 // 404 handler
 app.use((req, res, next) => {

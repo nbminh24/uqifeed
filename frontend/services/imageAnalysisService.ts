@@ -17,6 +17,7 @@ interface ImageAnalysisResponse {
             id: string;
             food_name: string;
             food_image: string;
+            cloudinary_public_id?: string;
             food_description: Record<string, string>;
             food_advice: Record<string, string>;
             food_preparation: Record<string, any>;

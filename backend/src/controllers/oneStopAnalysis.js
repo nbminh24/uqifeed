@@ -31,15 +31,14 @@ const OneStopAnalysisController = {
                     'Request body is undefined',
                     400
                 );
-            }
-
-            const { base64Image, meal_type_id } = req.body;
+            } const { meal_type_id } = req.body;
+            const file = req.file;  // Multer adds the file object
 
             // Validate required fields
-            if (!base64Image) {
+            if (!file && !req.body.base64Image) {
                 return sendErrorResponse(
                     res,
-                    'Image is required',
+                    'Image is required (either as file upload or base64)',
                     400
                 );
             }
@@ -50,10 +49,26 @@ const OneStopAnalysisController = {
                     'Meal type ID is required',
                     400
                 );
-            }
+            }            // Step 1: Process the image, upload to Cloudinary, and extract food data
+            let processingResults;
+            try {
+                if (file) {
+                    processingResults = await ImageProcessingService.processUploadedImage(file, req.user.id);
+                } else {
+                    processingResults = await ImageProcessingService.processImage(req.body.base64Image, req.user.id);
+                }
 
-            // Step 1: Process the image and extract food data
-            const processingResults = await ImageProcessingService.processImage(base64Image);
+                if (!processingResults.cloudinaryInfo?.url) {
+                    throw new Error('Failed to upload image to Cloudinary');
+                }
+            } catch (error) {
+                console.error('Image processing error:', error);
+                return sendErrorResponse(
+                    res,
+                    'Failed to process and upload image',
+                    500
+                );
+            }
 
             if (!processingResults || !processingResults.foodData) {
                 return sendErrorResponse(
@@ -61,25 +76,38 @@ const OneStopAnalysisController = {
                     'Failed to analyze food image',
                     500
                 );
-            }
-
-            const foodData = processingResults.foodData;
+            } const foodData = processingResults.foodData;
 
             // Step 2: Save food to database
+            // Only use cloudinaryInfo URL since base64 is already uploaded to Cloudinary
+            const foodImageUrl = processingResults.cloudinaryInfo?.url;
+            const cloudinaryPublicId = processingResults.cloudinaryInfo?.publicId;
+
+            // Validate we have a valid URL before saving
+            if (!foodImageUrl) {
+                return sendErrorResponse(
+                    res,
+                    'Failed to get valid image URL from Cloudinary',
+                    500
+                );
+            }
+
+            // Create food record with Cloudinary URL
             const food = {
                 user_id: req.user.id,
                 meal_type_id,
-                food_image: base64Image,
+                food_image: foodImageUrl, // Using secure_url from Cloudinary
+                cloudinary_public_id: cloudinaryPublicId,
                 food_name: foodData.foodName,
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
-                // Initialize nutrition values as null
-                total_protein: null,
-                total_carb: null,
-                total_fat: null,
-                total_fiber: null,
-                total_calorie: null
+                // Initialize nutrition values as 0
+                total_protein: 0,
+                total_carb: 0,
+                total_fat: 0,
+                total_fiber: 0,
+                total_calorie: 0
             };
 
             const savedFood = await Food.save(food);
@@ -249,10 +277,8 @@ const OneStopAnalysisController = {
                     'Meal type ID is required',
                     400
                 );
-            }
-
-            // Step 1: Process the uploaded image and extract food data
-            const processingResults = await ImageProcessingService.processUploadedImage(file);
+            }            // Step 1: Process the uploaded image and extract food data
+            const processingResults = await ImageProcessingService.processUploadedImage(file, req.user.id);
 
             if (!processingResults || !processingResults.foodData) {
                 return sendErrorResponse(
@@ -260,26 +286,44 @@ const OneStopAnalysisController = {
                     'Failed to analyze food image',
                     500
                 );
+            } const foodData = processingResults.foodData;            // Step 2: Get Cloudinary info for saving to database
+            if (!processingResults.cloudinaryInfo?.url) {
+                console.error('Missing Cloudinary URL:', processingResults);
+                return sendErrorResponse(
+                    res,
+                    'Failed to get image URL from Cloudinary',
+                    500
+                );
             }
 
-            const foodData = processingResults.foodData;
-            const base64Image = processingResults.base64Image;
+            const foodImageUrl = processingResults.cloudinaryInfo.url;
+            const cloudinaryPublicId = processingResults.cloudinaryInfo.publicId;
 
-            // Step 2: Save food to database
+            // Extra validation to ensure URL exists and is a string
+            if (typeof foodImageUrl !== 'string' || !foodImageUrl.startsWith('http')) {
+                console.error('Invalid Cloudinary URL:', foodImageUrl);
+                return sendErrorResponse(
+                    res,
+                    'Invalid image URL received from Cloudinary',
+                    500
+                );
+            }
+
             const food = {
                 user_id: req.user.id,
-                meal_type_id,
-                food_image: base64Image, // Store base64 image for reference
-                food_name: foodData.foodName,
-                food_description: foodData.foodDescription,
-                food_advice: foodData.foodAdvice,
-                food_preparation: foodData.foodPreparation,
-                // Initialize nutrition values as null
-                total_protein: null,
-                total_carb: null,
-                total_fat: null,
-                total_fiber: null,
-                total_calorie: null
+                meal_type_id: meal_type_id,
+                food_image: foodImageUrl, // Validated Cloudinary URL
+                cloudinary_public_id: cloudinaryPublicId || null, // Ensure null if undefined
+                food_name: foodData.foodName || '',
+                food_description: foodData.foodDescription || {},
+                food_advice: foodData.foodAdvice || '',
+                food_preparation: foodData.foodPreparation || '',
+                // Initialize nutrition values as 0
+                total_protein: 0,
+                total_carb: 0,
+                total_fat: 0,
+                total_fiber: 0,
+                total_calorie: 0
             };
 
             const savedFood = await Food.save(food);

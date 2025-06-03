@@ -12,16 +12,27 @@ class Food {
      * Save food data to database
      * @param {Object} foodData - Food data to save
      * @returns {Object} Saved food object
-     */
-    static async save(foodData) {
-        try {
-            // Add timestamps
+     */    static async save(foodData) {
+        try {            // Add timestamps and ensure required fields
             const now = new Date().toISOString();
-            foodData.created_at = now;
-            foodData.updated_at = now;
+            const sanitizedData = {
+                ...foodData,
+                created_at: now,
+                updated_at: now,
+                food_image: foodData.food_image || null,
+                food_name: foodData.food_name || '',
+                food_description: foodData.food_description || {},
+                food_advice: foodData.food_advice || '',
+                food_preparation: foodData.food_preparation || '',
+                total_protein: foodData.total_protein || 0,
+                total_carb: foodData.total_carb || 0,
+                total_fat: foodData.total_fat || 0,
+                total_fiber: foodData.total_fiber || 0,
+                total_calorie: foodData.total_calorie || 0
+            };
 
             // Create food in Firestore
-            const foodRef = await foodsCollection.add(foodData);
+            const foodRef = await foodsCollection.add(sanitizedData);
 
             // Get the food data with ID
             const food = await foodRef.get();

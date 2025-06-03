@@ -1,0 +1,93 @@
+import React from 'react';
+import { StyleSheet, View, Text } from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
+import { FoodImage } from './FoodImage';
+
+interface FoodHeaderProps {
+    title: string;
+    date: string;
+    image: string;
+    localImageUri?: string;
+    useAsNavigationHeader?: boolean;
+}
+
+export const FoodHeader: React.FC<FoodHeaderProps> = ({ 
+    title, 
+    date, 
+    image,
+    localImageUri,
+    useAsNavigationHeader = false 
+}) => {
+    // Sử dụng kiểu khác nhau tùy vào vị trí hiển thị (trong header hoặc trong content)
+    if (useAsNavigationHeader) {
+        return (
+            <View style={styles.headerContainer}>
+                <View style={styles.headerContentWrap}>
+                    <Text style={styles.headerTitle} numberOfLines={3} ellipsizeMode="tail">
+                        {title}
+                    </Text>
+                    <Text style={styles.headerDate}>
+                        {date}
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Kiểu mặc định khi hiển thị trong nội dung
+    return (
+        <>
+            <FoodImage imageUrl={image} localImageUri={localImageUri} />
+            <View style={styles.header}>
+                <ThemedText type="title" style={styles.foodTitle}>{title}</ThemedText>
+                <ThemedText style={styles.dateText}>{date}</ThemedText>
+            </View>
+        </>
+    );
+};
+
+const styles = StyleSheet.create({
+    header: {
+        backgroundColor: '#FFFFFF',
+        padding: 12,
+        paddingBottom: 8,
+        alignItems: 'center',
+    },
+    foodTitle: {
+        fontSize: 22,
+        color: '#333',
+        marginBottom: 2,
+        textAlign: 'center',
+    },
+    dateText: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
+    },
+    headerContainer: {
+        height: 'auto',
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    headerContentWrap: {
+        position: 'relative',
+        top: 0,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        left: 40,
+    },
+    headerDate: {
+        fontSize: 12,
+        color: '#666',
+        height: 22,
+    },
+});

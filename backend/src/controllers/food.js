@@ -47,20 +47,25 @@ const FoodController = {
                     'Failed to analyze food image',
                     500
                 );
-            } const foodData = analysisResult.foodData;            // Extract data for food table
+            } const foodData = analysisResult.foodData;            // Get Cloudinary URL from processing results
+            const foodImageUrl = analysisResult.cloudinaryInfo?.url || base64Image || null;
+            const cloudinaryPublicId = analysisResult.cloudinaryInfo?.publicId || null;
+
+            // Extract data for food table
             const food = {
                 user_id: req.user ? req.user.id : 'nR3t7mJhxhIdQvTqSIqX', // Add fallback for testing
                 meal_type_id,
-                food_image: base64Image,
+                food_image: foodImageUrl,
+                cloudinary_public_id: cloudinaryPublicId,
                 food_name: foodData.foodName,
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
-                // Initialize total nutrient values as null, to be calculated later
-                total_protein: null,
-                total_carb: null,
-                total_fat: null,
-                total_fiber: null,
+                // Initialize total nutrient values as 0 instead of null
+                total_protein: 0,
+                total_carb: 0,
+                total_fat: 0,
+                total_fiber: 0,
                 total_calorie: null
             };
 

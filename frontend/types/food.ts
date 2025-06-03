@@ -1,3 +1,39 @@
+export interface Food {
+    id: string;
+    user_id: string;
+    food_name: string;
+    food_image: string;
+    cloudinary_public_id?: string;
+    food_description: Record<string, string>;
+    food_advice: Record<string, string>;
+    food_preparation: Record<string, any>;
+    total_calorie: number;
+    total_protein: number;
+    total_carb: number;
+    total_fat: number;
+    total_fiber: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Food {
+    id: string;
+    user_id: string;
+    food_name: string;
+    food_image?: string;
+    cloudinary_public_id?: string;
+    food_description: Record<string, string>;
+    food_advice: Record<string, string>;
+    food_preparation: Record<string, any>;
+    total_calorie: number | null;
+    total_protein: number | null;
+    total_carb: number | null;
+    total_fat: number | null;
+    total_fiber: number | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
 export interface Ingredient {
     id: string;
     food_id: string;
