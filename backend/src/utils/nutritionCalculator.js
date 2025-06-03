@@ -20,3 +20,57 @@ const calculateCalories = (protein, carb, fat) => {
 module.exports = {
     calculateCalories
 };
+/**
+ * Extracts numeric value and unit from ingredient amount string.
+ * @param {String} amountStr - The amount string to parse
+ * @returns {Object} Extracted numeric value and unit, normalized to grams
+ */
+function parseAmount(amountStr) {
+    if (!amountStr) return { value: 1, unit: 'g' }; // Default value
+
+    // Convert Vietnamese units to standardized form
+    const viUnits = {
+        'muỗng canh': 'tbsp',
+        'muỗng cafe': 'tsp',
+        'muỗng cà phê': 'tsp',
+        'chén': 'cup',
+        'ly': 'cup',
+        'cốc': 'cup',
+    };
+
+    // Standardized conversion rates to grams
+    const unitConversions = {
+        'g': 1,
+        'gram': 1,
+        'kg': 1000,
+        'mg': 0.001,
+        'oz': 28.3495,
+        'lb': 453.592,
+        'cup': 240, // Approximate for most ingredients
+        'tbsp': 15,
+        'tsp': 5,
+        'ml': 1, // Assuming density close to water
+        'l': 1000,
+    };
+
+    // Clean and standardize input
+    let cleanStr = amountStr.toLowerCase().trim();
+    for (const [vi, en] of Object.entries(viUnits)) {
+        cleanStr = cleanStr.replace(vi, en);
+    }
+
+    // Extract number and unit
+    const match = cleanStr.match(/([\d.,]+)\s*([a-z]+)?/);
+    if (!match) return { value: 1, unit: 'g' };
+
+    const value = parseFloat(match[1].replace(',', '.'));
+    let unit = (match[2] || 'g').toLowerCase();
+
+    // Convert to base unit (grams)
+    const conversionRate = unitConversions[unit] || 1;
+    return {
+        value: value * conversionRate,
+        originalValue: value,
+        originalUnit: unit,
+    };
+}
