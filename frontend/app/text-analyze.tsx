@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View, ScrollView } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, View, ScrollView, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -95,180 +95,197 @@ export default function TextAnalyzeScreen() {
     return (
         <ThemedView style={styles.container}>
             <Stack.Screen options={{
-                title: 'Text Analysis',
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: '#163166',
-                },
-                headerTintColor: '#fff',
+                headerShown: false
             }} />
 
-            <ScrollView style={styles.scrollView}>
-                <ThemedView style={styles.contentContainer}>
-                    <ThemedText style={styles.description}>
-                        Enter your food description here for nutritional analysis
-                    </ThemedText>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.contentContainer}>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="arrow-back" size={24} color="#000" />
+                    </TouchableOpacity>
+                    <ThemedText style={styles.headerTitle}>Text Analysis</ThemedText>
+                    <View style={{ width: 24 }} />
+                </View>
 
-                    <TextInput
-                        style={styles.textInput}
-                        multiline
-                        numberOfLines={6}
-                        placeholder="Example: 2 cups of rice, 1 chicken breast, and a bowl of vegetables..."
-                        placeholderTextColor="#999"
-                        value={text}
-                        onChangeText={setText}
-                    />
+                <View style={styles.mainContent}>
+                    <View style={styles.card}>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Describe the food you'd like to analyze..."
+                            value={text}
+                            onChangeText={setText}
+                            multiline
+                            placeholderTextColor="#9CA3AF"
+                        />
+                    </View>
 
-                    <ThemedText style={styles.sectionTitle}>
-                        Select Meal Type
-                    </ThemedText>
-
-                    <ThemedText style={styles.helperText}>
-                        Choosing the right meal type helps get accurate nutritional recommendations
-                    </ThemedText>
-
-                    {loadingMealTypes ? (
-                        <ActivityIndicator size="small" color="#163166" style={styles.loading} />
-                    ) : (
-                        <View style={styles.mealTypeContainer}>
-                            {mealTypes.map((mealType) => {
-                                const isSelected = selectedMealTypeId === mealType.id;
-
-                                return (
-                                    <TouchableOpacity
-                                        key={mealType.originalId}
-                                        style={[
-                                            styles.mealTypeButton,
-                                            isSelected && styles.selectedMealType
-                                        ]}
-                                        onPress={() => {
-                                            console.log(`Selecting meal type: ${mealType.name} with ID: ${mealType.id}`);
-                                            setSelectedMealTypeId(mealType.id);
-                                        }}
-                                    >
-                                        <ThemedText
-                                            style={[
-                                                styles.mealTypeText,
-                                                isSelected && styles.selectedMealTypeText
-                                            ]}
-                                        >
-                                            {mealType.name}
-                                        </ThemedText>
-                                    </TouchableOpacity>
-                                );
-                            })}
+                    <View style={styles.actionCard}>
+                        <View style={styles.buttonContainer}>
+                            <Button
+                                title="Analyze Food"
+                                onPress={handleAnalyze}
+                                style={[styles.button, styles.analyzeButton]}
+                                disabled={isAnalyzing || !text.trim() || !selectedMealTypeId}
+                            >
+                                {isAnalyzing && <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />}
+                            </Button>
                         </View>
-                    )}
 
-                    {error ? (
-                        <ThemedText style={styles.errorText}>{error}</ThemedText>
-                    ) : null}
+                        <View style={styles.mealTypeSection}>
+                            <ThemedText style={styles.sectionTitle}>Select Meal Type</ThemedText>
+                            {loadingMealTypes ? (
+                                <View style={styles.loadingContainer}>
+                                    <ActivityIndicator size="small" color="#163166" />
+                                </View>
+                            ) : (
+                                <View style={styles.mealTypeContainer}>
+                                    {mealTypes.map((mealType) => (
+                                        <TouchableOpacity
+                                            key={mealType.id}
+                                            style={[
+                                                styles.mealTypeButton,
+                                                selectedMealTypeId === mealType.id && styles.mealTypeButtonSelected,
+                                            ]}
+                                            onPress={() => setSelectedMealTypeId(mealType.id)}
+                                        >
+                                            <ThemedText
+                                                style={[
+                                                    styles.mealTypeText,
+                                                    selectedMealTypeId === mealType.id && styles.mealTypeTextSelected,
+                                                ]}
+                                            >
+                                                {mealType.name}
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </ScrollView>
 
-                    <Button
-                        title={isAnalyzing ? "Analyzing..." : "Analyze Text"}
-                        onPress={handleAnalyze}
-                        disabled={isAnalyzing || !text.trim()}
-                        style={styles.analyzeButton}
-                    />
-                </ThemedView>
-            </ScrollView >
-        </ThemedView >
+            {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+        </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9f9f9',
-    },
-    scrollView: {
-        flex: 1,
+        backgroundColor: '#F5F6FA',
+        paddingTop: Platform.OS === 'ios' ? 48 : 32,
     },
     contentContainer: {
-        flex: 1,
-        padding: 16,
-        width: '100%',
+        flexGrow: 1,
     },
-    description: {
-        fontSize: 16,
-        color: '#555',
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
         marginBottom: 16,
-        textAlign: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+    },
+    mainContent: {
+        paddingHorizontal: 16,
+        flex: 1,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+        marginBottom: 24,
     },
     textInput: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        minHeight: 150,
-        fontSize: 16,
+        fontSize: 15,
         color: '#333',
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
+        minHeight: 150, // Increased height
         textAlignVertical: 'top',
-        marginBottom: 16,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 12,
+    },
+    actionCard: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 2,
     },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginTop: 20,
-        marginBottom: 8,
+    buttonContainer: {
+        marginBottom: 20,
     },
-    helperText: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 16,
+    button: {
+        height: 44, // Smaller height
+        borderRadius: 10,
+    },
+    analyzeButton: {
+        backgroundColor: '#1E293B', // Darker blue
+    },
+    mealTypeSection: {
+        marginTop: 8,
+    },
+    sectionTitle: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 12,
     },
     mealTypeContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginBottom: 20,
+        gap: 8,
     },
     mealTypeButton: {
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-        paddingVertical: 10,
         paddingHorizontal: 16,
-        marginRight: 10,
-        marginBottom: 10,
+        paddingVertical: 8,
+        borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: '#E5E7EB',
+        backgroundColor: '#F3F4F6',
     },
-    selectedMealType: {
-        backgroundColor: '#163166',
-        borderColor: '#163166',
+    mealTypeButtonSelected: {
+        backgroundColor: '#334155', // Darker slate color
+        borderColor: '#334155',
     },
     mealTypeText: {
         fontSize: 14,
-        fontWeight: '500',
-        color: '#444',
+        color: '#64748B',
     },
-    selectedMealTypeText: {
+    mealTypeTextSelected: {
         color: '#fff',
-    },
-    analyzeButton: {
-        backgroundColor: '#163166',
-        borderRadius: 12,
-        paddingVertical: 14,
-        width: '100%',
-        marginTop: 16,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-        textAlign: 'center',
     },
     errorText: {
-        color: '#dc3545',
+        color: '#DC2626',
         fontSize: 14,
-        marginBottom: 8,
+        marginTop: 8,
+        textAlign: 'center',
+        position: 'absolute',
+        bottom: 16,
+        left: 16,
+        right: 16,
     },
-    loading: {
-        marginVertical: 20,
-    }
+    loadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
 });

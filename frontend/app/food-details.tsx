@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity, Platform } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -124,11 +124,28 @@ export default function FoodDetailsScreen() {
     });
 
     return (
-        <ThemedView style={styles.container}>
+        <ThemedView style={styles.container}>            <Stack.Screen options={{ headerShown: false }} />
+
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons name="arrow-back" size={24} color="#000" />
+                </TouchableOpacity>
+                <View style={styles.headerTitle}>
+                    <Text style={styles.foodName} numberOfLines={1}>
+                        {food.food_name}
+                    </Text>
+                    <Text style={styles.timeText}>
+                        {new Date(food.created_at).toLocaleString()}
+                    </Text>
+                </View>
+                <TouchableOpacity
+                    onPress={() => router.push({ pathname: '/food-edit', params: { id: id } })}
+                >
+                    <Ionicons name="pencil" size={24} color="#333" />
+                </TouchableOpacity>
+            </View>
+
             <ScrollView>
-                <FoodHeader
-                    title={food.food_name}
-                    date={new Date(food.created_at).toLocaleDateString()} useAsNavigationHeader={true} />
                 <FoodImage
                     imageUrl={food.food_image || (typeof food.food_description === 'string' ? "https://i.pinimg.com/736x/4b/df/13/4bdf13a13c23d9d873a9ed306ad5a6fa.jpg" : "https://mir-s3-cdn-cf.behance.net/projects/404/7db057114460205.Y3JvcCw5OTksNzgyLDAsMTA4.jpg")}>
                     <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
@@ -177,30 +194,41 @@ export default function FoodDetailsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f2f2f2',
-    }, scrollView: {
+        backgroundColor: '#F5F6FA',
+        paddingTop: Platform.OS === 'ios' ? 48 : 32,
+    },
+    scrollView: {
         flex: 1,
         width: '100%',
         backgroundColor: '#f2f2f2',
     },
     header: {
-        backgroundColor: '#FFFFFF',
-        padding: 16,
-        paddingBottom: 10,
+        flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        marginBottom: 16,
     },
-    foodTitle: {
-        fontSize: 22,
-        color: '#333',
+    headerTitle: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    foodName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
         marginBottom: 4,
-        textAlign: 'center',
     },
-    dateText: {
-        fontSize: 12,
-        color: '#999',
-        textAlign: 'center',
+    timeText: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 16,
     },
     fiberScoreSection: {
         backgroundColor: '#fff',

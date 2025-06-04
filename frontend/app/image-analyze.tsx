@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator, Alert, Platform, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Image, ActivityIndicator, Alert, Platform, Text, ScrollView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -169,181 +169,147 @@ export default function ImageAnalyzeScreen() {
     }
 
     if (!cameraPermission?.granted || !libraryPermission) {
-        return (
-            <ThemedView style={styles.container}>                <Ionicons name="alert-circle" size={48} color="#FF6B6B" />
-                <ThemedText style={styles.permissionText}>
-                    No access to camera or photo library. Please enable permissions in your device settings.
-                </ThemedText>
-            </ThemedView>
+        return (<ThemedView style={styles.container}>
+            <Ionicons name="alert-circle" size={48} color="#FF6B6B" />
+            <ThemedText style={styles.permissionText}>
+                No access to camera or photo library. Please enable permissions in your device settings.
+            </ThemedText>
+        </ThemedView>
         );
     }
 
     return (
         <ThemedView style={styles.container}>
             <Stack.Screen options={{
-                title: 'Image Analysis',
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: '#163166',
-                },
-                headerTintColor: '#fff',
+                headerShown: false
             }} />
 
-            {error ? (
-                <ThemedText style={styles.errorText}>{error}</ThemedText>
-            ) : null}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons name="arrow-back" size={24} color="#000" />
+                </TouchableOpacity>
+                <ThemedText style={styles.headerTitle}>Image Analysis</ThemedText>
+                <View style={{ width: 24 }} />
+            </View>
 
-            {showCamera ? (
-                <View style={styles.cameraContainer}>
-                    <CameraView
-                        ref={cameraRef}
-                        style={styles.camera}
-                        facing={cameraType}
-                        ratio="4:3"
-                    />
-                    <View style={styles.cameraControls}>
-                        <TouchableOpacity
-                            style={styles.cameraButton}
-                            onPress={() => setShowCamera(false)}
-                        >
-                            <Ionicons name="close" size={28} color="#fff" />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.captureButton}
-                            onPress={takePicture}
-                        >
-                            <View style={styles.captureButtonInner} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.cameraButton}
-                            onPress={toggleCameraType}
-                        >
-                            <Ionicons name="camera-reverse" size={28} color="#fff" />
-                        </TouchableOpacity>
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                <View style={styles.card}>
+                    <View style={styles.imageContainer}>
+                        {capturedImage ? (
+                            <Image
+                                source={{ uri: capturedImage }}
+                                style={styles.previewImage}
+                            />
+                        ) : showCamera ? (
+                            <CameraView
+                                ref={cameraRef}
+                                style={styles.previewImage}
+                                facing={cameraType}
+                                onMountError={(error) => {
+                                    console.error('Camera mount error:', error);
+                                    setError('Failed to initialize camera');
+                                }}
+                            />
+                        ) : (
+                            <View style={styles.placeholderContainer}>
+                                <Ionicons name="images-outline" size={48} color="#666" />
+                                <ThemedText style={styles.instructionsText}>
+                                    Take a picture or select an image
+                                </ThemedText>
+                            </View>
+                        )}
                     </View>
-                </View>
-            ) : capturedImage ? (
-                <View style={styles.previewContainer}>
-                    <Image source={{ uri: capturedImage }} style={styles.previewImage} />
-                    <View style={styles.previewContent}>
-                        {/* Meal Type Selection */}
-                        <View style={styles.mealTypeSection}>
-                            <ThemedText style={styles.sectionTitle}>Select Meal Type</ThemedText>
-                            <ThemedText style={styles.helperText}>
-                                Choosing the right meal type helps get accurate nutritional recommendations
-                            </ThemedText>
 
-                            {loadingMealTypes ? (
-                                <ActivityIndicator size="small" color="#163166" style={styles.loading} />
-                            ) : (
-                                <View style={styles.mealTypeContainer}>
-                                    {mealTypes.map((mealType) => {
-                                        const isSelected = selectedMealTypeId === mealType.id;
-                                        return (
-                                            <TouchableOpacity
-                                                key={mealType.originalId}
-                                                style={[
-                                                    styles.mealTypeButton,
-                                                    isSelected && styles.selectedMealType
-                                                ]}
-                                                onPress={() => {
-                                                    setSelectedMealTypeId(mealType.id);
-                                                }}
-                                            >
-                                                <ThemedText
-                                                    style={[
-                                                        styles.mealTypeText,
-                                                        isSelected && styles.selectedMealTypeText
-                                                    ]}
-                                                >
-                                                    {mealType.name}
-                                                </ThemedText>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
+                    {showCamera ? (
+                        <View style={styles.cameraControls}>
+                            <Button
+                                title="Take Picture"
+                                onPress={takePicture}
+                                style={styles.button}
+                            />
+                            <Button
+                                title="Switch Camera"
+                                onPress={() => setCameraType(prev => prev === 'back' ? 'front' : 'back')}
+                                style={styles.button}
+                            />
+                        </View>
+                    ) : (
+                        <>
+                            {!capturedImage && (
+                                <View style={styles.imageActions}>
+                                    <TouchableOpacity
+                                        style={styles.imageActionButton}
+                                        onPress={() => setShowCamera(true)}
+                                    >
+                                        <Ionicons name="camera" size={32} color="#334155" />
+                                        <ThemedText style={styles.actionButtonText}>Take Photo</ThemedText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.imageActionButton}
+                                        onPress={pickImage}
+                                    >
+                                        <Ionicons name="images" size={32} color="#334155" />
+                                        <ThemedText style={styles.actionButtonText}>Pick Image</ThemedText>
+                                    </TouchableOpacity>
                                 </View>
                             )}
+                        </>
+                    )}
+                </View>
+
+                <View style={styles.actionCard}>
+                    <ThemedText style={styles.sectionTitle}>Select Meal Type</ThemedText>
+                    {loadingMealTypes ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="small" color="#163166" />
                         </View>
+                    ) : (
+                        <View style={styles.mealTypeContainer}>
+                            {mealTypes.map((type) => (
+                                <TouchableOpacity
+                                    key={type.id}
+                                    style={[
+                                        styles.mealTypeButton,
+                                        selectedMealTypeId === type.id && styles.mealTypeButtonSelected,
+                                    ]}
+                                    onPress={() => setSelectedMealTypeId(type.id)}
+                                >
+                                    <ThemedText style={[
+                                        styles.mealTypeText,
+                                        selectedMealTypeId === type.id && styles.mealTypeTextSelected,
+                                    ]}>
+                                        {type.name}
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
 
-                        {error ? (
-                            <ThemedText style={styles.errorText}>{error}</ThemedText>
-                        ) : null}
-
-                        <View style={styles.previewControls}>
+                    {capturedImage && (
+                        <View style={styles.buttonContainer}>
                             <Button
-                                title="Discard"
-                                type="secondary"
+                                title={isLoading ? "Analyzing..." : "Analyze"}
+                                onPress={analyzeImage}
+                                style={[styles.button, styles.analyzeButton]}
+                                disabled={isLoading || !selectedMealTypeId}
+                            />
+                            <Button
+                                title="Reset"
                                 onPress={() => {
                                     setCapturedImage(null);
                                     setCapturedImageBase64(null);
                                 }}
-                                style={styles.previewButton}
-                            />
-                            <Button
-                                title={isLoading ? "Analyzing..." : "Analyze Food"}
-                                onPress={analyzeImage}
-                                disabled={isLoading || !selectedMealTypeId}
-                                style={[styles.previewButton, styles.analyzeButton]}
+                                style={styles.button}
                             />
                         </View>
-                    </View>
-
-                    {isLoading && (
-                        <ActivityIndicator
-                            size="large"
-                            color="#163166"
-                            style={styles.loadingIndicator}
-                        />
                     )}
                 </View>
-            ) : (
-                <View style={styles.optionsContainer}>
-                    <ThemedText type="title" style={styles.title}>Food Image Analysis</ThemedText>
-                    <ThemedText style={styles.description}>
-                        Take a photo of your food or select from gallery to analyze nutritional content
-                    </ThemedText>
+            </ScrollView>
 
-                    <View style={styles.buttonContainer}>
-                        <ButtonWithIcon
-                            title="Take Photo"
-                            onPress={() => setShowCamera(true)}
-                            icon={<Ionicons name="camera" size={24} color="#fff" />}
-                            type="primary"
-                        />
-
-                        <ButtonWithIcon
-                            title="Upload from Gallery"
-                            onPress={pickImage}
-                            icon={<Ionicons name="images" size={24} color="#163166" />}
-                            type="secondary"
-                        />
-                    </View>
-
-                    <View style={styles.instructionsContainer}>
-                        <ThemedText type="defaultSemiBold" style={styles.instructionsTitle}>
-                            Tips for better analysis:
-                        </ThemedText>
-                        <View style={styles.instructionItem}>
-                            <Ionicons name="checkmark-circle" size={18} color="#47b255" />
-                            <ThemedText style={styles.instructionText}>
-                                Ensure good lighting for clear photos
-                            </ThemedText>
-                        </View>
-                        <View style={styles.instructionItem}>
-                            <Ionicons name="checkmark-circle" size={18} color="#47b255" />
-                            <ThemedText style={styles.instructionText}>
-                                Capture all food items in the frame
-                            </ThemedText>
-                        </View>
-                        <View style={styles.instructionItem}>
-                            <Ionicons name="checkmark-circle" size={18} color="#47b255" />
-                            <ThemedText style={styles.instructionText}>
-                                Take photos from directly above for best results
-                            </ThemedText>
-                        </View>
-                    </View>
+            {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+            {isLoading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#5046E5" />
                 </View>
             )}
         </ThemedView>
@@ -353,190 +319,170 @@ export default function ImageAnalyzeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#F5F6FA',
+        paddingTop: Platform.OS === 'ios' ? 48 : 32,
     },
-    permissionText: {
-        marginTop: 20,
-        textAlign: 'center',
-        padding: 20,
-        fontSize: 16,
-    },
-    optionsContainer: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
+    header: {
+        flexDirection: 'row',
         alignItems: 'center',
-    },
-    title: {
-        fontSize: 28,
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    description: {
-        fontSize: 16,
-        textAlign: 'center',
-        marginBottom: 40,
-        color: '#555',
-    },
-    buttonContainer: {
-        width: '100%',
-        marginBottom: 40,
-    },
-    instructionsContainer: {
-        width: '100%',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         backgroundColor: '#fff',
-        borderRadius: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
         padding: 16,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowRadius: 3,
         elevation: 2,
+        marginBottom: 24,
     },
-    instructionsTitle: {
-        fontSize: 18,
-        marginBottom: 12,
-        color: '#333',
-    },
-    instructionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    instructionText: {
-        marginLeft: 10,
-        fontSize: 14,
-        color: '#555',
-    },
-    cameraContainer: {
-        flex: 1,
-        width: '100%',
-    },
-    camera: {
-        flex: 1,
-        width: '100%',
-    },
-    cameraControls: {
-        position: 'absolute',
-        bottom: 30,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-    },
-    cameraButton: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    captureButton: {
-        width: 70,
-        height: 70,
-        borderRadius: 35,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    captureButtonInner: {
-        width: 54,
-        height: 54,
-        borderRadius: 27,
-        backgroundColor: '#fff',
-    },
-    previewContainer: {
-        flex: 1,
-        width: '100%',
-        position: 'relative',
-    },
-    previewContent: {
-        flex: 1,
-        padding: 16,
-        backgroundColor: '#fff',
+    imageContainer: {
+        aspectRatio: 4 / 3,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginBottom: 16,
     },
     previewImage: {
-        height: 300,
         width: '100%',
+        height: '100%',
         resizeMode: 'cover',
     },
-    mealTypeSection: {
-        marginTop: 20,
-        marginBottom: 20,
+    placeholderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    instructionsText: {
+        fontSize: 15,
+        color: '#666',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    imageActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 16,
+    },
+    imageActionButton: {
+        flex: 1,
+        backgroundColor: '#f8fafc',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    actionButtonText: {
+        fontSize: 14,
+        color: '#334155',
+        marginTop: 8,
+        fontWeight: '500',
+    },
+    actionCard: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
     sectionTitle: {
-        fontSize: 18,
+        fontSize: 15,
         fontWeight: '600',
-        marginBottom: 8,
-    },
-    helperText: {
-        fontSize: 14,
-        color: '#666',
+        color: '#333',
         marginBottom: 12,
+    },
+    button: {
+        height: 44,
+        borderRadius: 10,
+    },
+    analyzeButton: {
+        backgroundColor: '#1E293B',
+    },
+    buttonContainer: {
+        marginTop: 20,
+        gap: 12,
     },
     mealTypeContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginBottom: 20,
+        gap: 8,
     },
     mealTypeButton: {
-        backgroundColor: '#f0f0f0',
-        borderRadius: 8,
-        paddingVertical: 10,
         paddingHorizontal: 16,
-        marginRight: 10,
-        marginBottom: 10,
+        paddingVertical: 8,
+        borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: '#E5E7EB',
+        backgroundColor: '#F3F4F6',
     },
-    selectedMealType: {
-        backgroundColor: '#163166',
-        borderColor: '#163166',
+    mealTypeButtonSelected: {
+        backgroundColor: '#334155',
+        borderColor: '#334155',
     },
     mealTypeText: {
         fontSize: 14,
-        fontWeight: '500',
-        color: '#444',
+        color: '#64748B',
     },
-    selectedMealTypeText: {
+    mealTypeTextSelected: {
         color: '#fff',
     },
-    loading: {
-        marginVertical: 20,
+    errorText: {
+        color: '#DC2626',
+        fontSize: 14,
+        marginTop: 8,
+        textAlign: 'center',
+        position: 'absolute',
+        bottom: 16,
+        left: 16,
+        right: 16,
     },
-    previewControls: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        padding: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        paddingTop: 10,
-    },
-    previewButton: {
-        flex: 1,
-        marginHorizontal: 8,
-    },
-    analyzeButton: {
-        backgroundColor: '#163166',
-    },
-    loadingIndicator: {
+    loadingOverlay: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    errorText: {
-        color: '#dc3545',
-        fontSize: 14,
-        marginBottom: 8,
+    cameraControls: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 16,
+    },
+    permissionText: {
+        fontSize: 15,
+        color: '#666',
         textAlign: 'center',
-    }
+        marginTop: 12,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
 });
 
