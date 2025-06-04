@@ -61,14 +61,13 @@ const styles = StyleSheet.create({
         paddingVertical: 10, // Tăng chiều cao của header
         height: 'auto', // Tự động điều chỉnh chiều cao theo nội dung
         marginLeft: 40, // Bù trừ cho nút back ở bên trái
-    },
-    headerTitle: {
+    }, headerTitle: {
         color: '#333',
-        fontSize: 17,
-        fontWeight: 'bold',
-        textAlign: 'center', // Căn giữa text
-        flexWrap: 'wrap', // Cho phép text xuống dòng
-        lineHeight: 22, // Tăng khoảng cách dòng
+        fontSize: 18,
+        fontWeight: '600',
+        textAlign: 'center',
+        flexWrap: 'wrap',
+        lineHeight: 24,
     },
     headerDate: {
         color: '#888',

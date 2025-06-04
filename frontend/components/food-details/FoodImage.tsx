@@ -72,11 +72,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 16,
         position: 'relative',
-    },
-    imageContainer: {
+    }, imageContainer: {
         width: 360,
         height: 360,
-        borderRadius: 180,
+        borderRadius: 16,
         overflow: 'hidden',
         marginVertical: 16,
         position: 'relative',
@@ -86,7 +85,7 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 180,
+        borderRadius: 16,
     }, overlay: {
         position: 'absolute',
         top: 0,

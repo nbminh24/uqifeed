@@ -33,10 +33,10 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         padding: 16,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 16,
+    }, title: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 8,
     },
 });

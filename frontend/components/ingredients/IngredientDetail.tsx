@@ -124,14 +124,18 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#999',
         textAlign: 'center',
-    },
-    section: {
-        margin: 16,
+    }, section: {
+        marginHorizontal: 12,
         marginTop: 0,
-        marginBottom: 16,
+        marginBottom: 12,
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 16,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
     sectionHeaderRow: {
         flexDirection: 'row',
@@ -166,15 +170,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f8f8',
         padding: 12,
         borderRadius: 12,
-    },
-    nutritionLabel: {
+    }, nutritionLabel: {
         fontSize: 14,
         color: '#666',
         marginTop: 4,
     },
     nutritionValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 15,
+        fontWeight: '500',
         color: '#333',
         marginTop: 2,
     },
