@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, FlatList, ActivityIndicator, View, Platform } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { format, addDays, subDays, startOfDay } from 'date-fns';
 import { FoodCard } from './FoodCard';
@@ -118,12 +118,14 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: '#FFFFFF',
-        padding: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
         marginTop: 8,
+
     },
     headerTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
+        fontSize: 25,
+        fontWeight: '700',
         color: '#163166',
         textAlign: 'center',
         letterSpacing: 0.35,

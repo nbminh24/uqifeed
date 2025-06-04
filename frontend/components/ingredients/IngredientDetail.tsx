@@ -28,7 +28,8 @@ export const IngredientDetail: React.FC<IngredientDetailProps> = ({
     createdAt
 }) => {
     return (
-        <View style={styles.container}>            {/* Amount */}
+        <View style={styles.container}>
+            {/* Amount */}
             <View style={styles.section}>
                 <View style={styles.sectionHeaderRow}>
                     <ThemedText style={styles.sectionTitle}>Amount</ThemedText>
@@ -93,10 +94,12 @@ export const IngredientDetail: React.FC<IngredientDetailProps> = ({
     );
 };
 
-const styles = StyleSheet.create({    container: {
+const styles = StyleSheet.create({
+    container: {
         backgroundColor: '#f9f9f9',
         width: '100%',
-    },section: {
+    },
+    section: {
         marginHorizontal: 12,
         marginTop: 0,
         marginBottom: 12,
@@ -142,7 +145,8 @@ const styles = StyleSheet.create({    container: {
         backgroundColor: '#f8f8f8',
         padding: 12,
         borderRadius: 12,
-    }, nutritionLabel: {
+    },
+    nutritionLabel: {
         fontSize: 14,
         color: '#666',
         marginTop: 4,
@@ -158,7 +162,6 @@ const styles = StyleSheet.create({    container: {
     },
     descriptionText: {
         fontSize: 14,
-        lineHeight: 20,
         color: '#333',
     },
 });
