@@ -17,9 +17,6 @@ const calculateCalories = (protein, carb, fat) => {
     return Math.round(calories);
 };
 
-module.exports = {
-    calculateCalories
-};
 /**
  * Extracts numeric value and unit from ingredient amount string.
  * @param {String} amountStr - The amount string to parse
@@ -74,3 +71,10 @@ function parseAmount(amountStr) {
         originalUnit: unit,
     };
 }
+
+
+
+module.exports = {
+    calculateCalories,
+    parseAmount
+};

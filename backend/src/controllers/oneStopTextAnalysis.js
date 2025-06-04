@@ -62,6 +62,7 @@ const OneStopTextAnalysisController = {
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
+                food_image: '/static/text-mock.jpg', // Using default image for text analysis
                 // Initialize nutrition values as 0 instead of null
                 total_protein: 0,
                 total_carb: 0,
@@ -106,21 +107,26 @@ const OneStopTextAnalysisController = {
             let totalCarb = 0;
             let totalFat = 0;
             let totalFiber = 0;
-            let totalCalorie = 0; savedIngredients.forEach(ingredient => {
+            let totalCalorie = 0;
+
+            savedIngredients.forEach(ingredient => {
                 if (ingredient.ingredient_protein) totalProtein += ingredient.ingredient_protein;
                 if (ingredient.ingredient_carb) totalCarb += ingredient.ingredient_carb;
                 if (ingredient.ingredient_fat) totalFat += ingredient.ingredient_fat;
                 if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
             });
 
-            // Calculate calories using the utility function (already rounds to whole number)
-            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);            // Update food with calculated nutrition values
+            // Calculate calories using the utility function
+            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
+
+            // Update food with calculated nutrition values and default image if none exists
             const updatedFood = await Food.update(savedFood.id, {
                 total_protein: totalProtein || 0,
                 total_carb: totalCarb || 0,
                 total_fat: totalFat || 0,
                 total_fiber: totalFiber || 0,
-                total_calorie: totalCalorie || 0
+                total_calorie: totalCalorie || 0,
+                food_image: savedFood.food_image || '/static/text-mock.jpg' // Add default image if none exists
             });            // Step 5: Get target nutrition for the user
             const targetNutrition = await TargetNutrition.findByUserId(req.user.id);
 

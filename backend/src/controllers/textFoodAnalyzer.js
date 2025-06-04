@@ -93,6 +93,7 @@ const TextFoodAnalyzerController = {
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
+                food_image: '/static/text-mock.jpg', // Using default image for text analysis
                 // Initialize total nutrient values as null, to be calculated later
                 total_protein: null,
                 total_carb: null,

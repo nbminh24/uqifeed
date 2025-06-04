@@ -12,7 +12,7 @@ const NutritionComment = require('../models/nutritionComment');
 const TargetNutrition = require('../models/targetNutrition');
 const NutritionScoreCalculator = require('../services/nutritionScoreCalculator');
 const NutritionCommentService = require('../services/nutritionCommentService');
-const { calculateCalories } = require('../utils/nutritionCalculator');
+const { calculateCalories, parseAmount } = require('../utils/nutritionCalculator');
 
 const OneStopAnalysisController = {
     /**
@@ -118,12 +118,12 @@ const OneStopAnalysisController = {
                 for (const item of foodData.foodIngredientList) {
                     // Extract numeric values and remove non-numeric characters
                     const extractNumber = (value) => {
-                        if (!value) return null;
+                        if (!value) return 0;
                         // If the value is already a number, return it
                         if (typeof value === 'number') return value;
                         // If string contains non-numeric chars besides dots and commas, use amount parser
                         if (value.toString().match(/[^0-9.,]/)) {
-                            const { value: parsedValue } = require('../utils/nutritionCalculator').parseAmount(value);
+                            const { value: parsedValue } = parseAmount(value);
                             return parsedValue;
                         }
                         // Otherwise extract simple number
@@ -342,12 +342,12 @@ const OneStopAnalysisController = {
                 for (const item of foodData.foodIngredientList) {
                     // Extract numeric values and remove non-numeric characters
                     const extractNumber = (value) => {
-                        if (!value) return null;
+                        if (!value) return 0;
                         // If the value is already a number, return it
                         if (typeof value === 'number') return value;
                         // If string contains non-numeric chars besides dots and commas, use amount parser
                         if (value.toString().match(/[^0-9.,]/)) {
-                            const { value: parsedValue } = require('../utils/nutritionCalculator').parseAmount(value);
+                            const { value: parsedValue } = parseAmount(value);
                             return parsedValue;
                         }
                         // Otherwise extract simple number

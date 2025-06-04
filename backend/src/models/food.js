@@ -1,4 +1,5 @@
 const { db } = require('../config/firebase');
+const { DEFAULT_TEXT_ANALYSIS_IMAGE } = require('../config/defaultImages');
 
 // Collection reference
 const foodsCollection = db.collection('foods');
@@ -13,13 +14,20 @@ class Food {
      * @param {Object} foodData - Food data to save
      * @returns {Object} Saved food object
      */    static async save(foodData) {
-        try {            // Add timestamps and ensure required fields
+        try {
             const now = new Date().toISOString();
+
+            // Set default image for text analysis
+            let food_image = foodData.food_image;
+            if (!food_image && foodData.food_text_description) {
+                food_image = DEFAULT_TEXT_ANALYSIS_IMAGE;
+            }
+
             const sanitizedData = {
                 ...foodData,
                 created_at: now,
                 updated_at: now,
-                food_image: foodData.food_image || null,
+                food_image,
                 food_name: foodData.food_name || '',
                 food_description: foodData.food_description || {},
                 food_advice: foodData.food_advice || '',
@@ -30,6 +38,8 @@ class Food {
                 total_fiber: foodData.total_fiber || 0,
                 total_calorie: foodData.total_calorie || 0
             };
+
+            console.log('Saving food with image:', food_image);
 
             // Create food in Firestore
             const foodRef = await foodsCollection.add(sanitizedData);
@@ -134,21 +144,37 @@ class Food {
     }
 
     /**
-     * Update a food
+     * Update food data
      * @param {String} id - Food ID
      * @param {Object} updateData - Data to update
      * @returns {Object} Updated food object
      */
     static async update(id, updateData) {
         try {
-            // Add update timestamp
-            updateData.updated_at = new Date().toISOString();
+            const foodDoc = await foodsCollection.doc(id).get();
+            if (!foodDoc.exists) {
+                throw new Error('Food not found');
+            }
+            const currentData = foodDoc.data();
 
-            // Update food in Firestore
-            await foodsCollection.doc(id).update(updateData);
+            // Set default image for text analysis
+            let food_image = updateData.food_image || currentData.food_image;
+            if (!food_image && (updateData.food_text_description || currentData.food_text_description)) {
+                food_image = DEFAULT_TEXT_ANALYSIS_IMAGE;
+            }
 
-            // Get updated food
-            return await this.findById(id);
+            const now = new Date().toISOString();
+            const sanitizedData = {
+                ...updateData,
+                updated_at: now,
+                food_image
+            };
+
+            console.log('Updating food with image:', food_image);
+
+            await foodsCollection.doc(id).update(sanitizedData);
+            const updatedFoodDoc = await foodsCollection.doc(id).get();
+            return { id: updatedFoodDoc.id, ...updatedFoodDoc.data() };
         } catch (error) {
             console.error('Error updating food:', error);
             throw error;

@@ -44,6 +44,7 @@ export default function FoodDetailsScreen() {
             }); if (response.success) {
                 console.log('[FoodDetails] Food data:', {
                     food_name: response.data.food.food_name,
+                    food_image: response.data.food.food_image,
                     has_preparation: !!response.data.food.food_preparation,
                     preparation_type: typeof response.data.food.food_preparation,
                     preparation_data: response.data.food.food_preparation
@@ -127,9 +128,9 @@ export default function FoodDetailsScreen() {
             <ScrollView>
                 <FoodHeader
                     title={food.food_name}
-                    date={new Date(food.created_at).toLocaleDateString()}
-                    useAsNavigationHeader={true}
-                />                <FoodImage imageUrl={food.food_image}>
+                    date={new Date(food.created_at).toLocaleDateString()} useAsNavigationHeader={true} />
+                <FoodImage
+                    imageUrl={food.food_image || (typeof food.food_description === 'string' ? "https://i.pinimg.com/736x/4b/df/13/4bdf13a13c23d9d873a9ed306ad5a6fa.jpg" : "https://mir-s3-cdn-cf.behance.net/projects/404/7db057114460205.Y3JvcCw5OTksNzgyLDAsMTA4.jpg")}>
                     <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
                 </FoodImage><CaloriesAndMacros
                     calories={food.total_calorie || 0}

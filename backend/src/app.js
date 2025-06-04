@@ -27,6 +27,13 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Serve static files
+const path = require('path');
+app.use('/static', express.static(path.join(__dirname, '../services')));
+app.use('/static/text-mock.jpg', (req, res) => {
+    res.sendFile(path.join(__dirname, '../services/text-mock.jpg'));
+});
+
 // Import routes
 const indexRoutes = require('./routes/index');
 const testRoutes = require('./routes/test'); // Add test routes
