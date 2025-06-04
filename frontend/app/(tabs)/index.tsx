@@ -1,12 +1,8 @@
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Button } from '@/components/ui/Button';
+import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
+import { FoodHistoryScreen } from '@/components/food-history';
 
 export default function HomeScreen() {
   const navigateToImageAnalyze = () => {
@@ -17,82 +13,45 @@ export default function HomeScreen() {
     router.push('/text-analyze');
   };
 
-  const navigateToFoodDetails = () => {
-    router.push('/food-details');
-  };
-
-  const navigateToIngredients = () => {
-    router.push('/ingredients');
-  };
-
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#163166', dark: '#163166' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">UQI Feed</ThemedText>
-        <HelloWave />
-      </ThemedView>
-
-      <ThemedView style={styles.buttonsContainer}>
-        <ThemedText type="subtitle" style={styles.subtitle}>Choose an option:</ThemedText>
-
-        <Button
-          title="Image Analyze"
+    <View style={styles.container}>
+      <FoodHistoryScreen />
+      <View style={styles.floatingButtonsContainer}>
+        <FloatingActionButton
+          iconName="camera-alt"
           onPress={navigateToImageAnalyze}
-          style={styles.button}
+          style={styles.floatingButton}
+          size={28}
         />
-
-        <Button
-          title="Text Analyze"
+        <FloatingActionButton
+          iconName="keyboard"
           onPress={navigateToTextAnalyze}
-          style={styles.button}
+          style={styles.floatingButton}
+          size={28}
         />
-
-        <Button
-          title="Food Details"
-          type="secondary"
-          onPress={navigateToFoodDetails}
-          style={styles.button}
-        />
-
-        <Button
-          title="Ingredients"
-          onPress={navigateToIngredients}
-          style={styles.button}
-        />
-      </ThemedView>
-    </ParallaxScrollView>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    position: 'relative',
   },
-  buttonsContainer: {
-    gap: 8,
-    marginBottom: 24,
-    padding: 16,
-  },
-  subtitle: {
-    marginBottom: 16,
-  },
-  button: {
-    marginVertical: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  floatingButtonsContainer: {
     position: 'absolute',
+    bottom: 90,
+    right: 16,
+    flexDirection: 'column',
+    gap: 10,
+    zIndex: 1000,
+  },
+  floatingButton: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });

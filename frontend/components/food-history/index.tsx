@@ -1,0 +1,152 @@
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, FlatList, ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { format, addDays, subDays, startOfDay } from 'date-fns';
+import { FoodCard } from './FoodCard';
+import { WeekDayPicker } from './WeekDayPicker';
+import { ThemedView } from '../ThemedView';
+import { ThemedText } from '../ThemedText';
+import { getFoodHistory, FoodHistoryItem } from '@/services/foodHistoryService';
+
+export function FoodHistoryScreen() {
+    const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
+    const [weekDates, setWeekDates] = useState<Date[]>([]);
+    const [foodsByDate, setFoodsByDate] = useState<{ [key: string]: FoodHistoryItem[] }>({});
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Add safe area padding for iOS status bar and tabs
+    const statusBarHeight = 50; // Điều chỉnh khoảng cách cho status bar
+
+    // Initialize week dates
+    useEffect(() => {
+        const today = startOfDay(new Date());
+        const dates = [];
+        // Generate dates for the last 6 days plus today, with today as the rightmost day
+        for (let i = 6; i >= 0; i--) {
+            dates.push(subDays(today, i));
+        }
+        setWeekDates(dates);
+    }, []); // Remove selectedDate dependency since we want fixed week view
+
+    // Fetch food history when selected date changes
+    useEffect(() => {
+        const fetchFoodHistory = async () => {
+            try {
+                setIsLoading(true);
+                const today = startOfDay(new Date());
+                const startDate = format(subDays(today, 6), 'yyyy-MM-dd');
+                const endDate = format(today, 'yyyy-MM-dd');
+                const response = await getFoodHistory(startDate, endDate);
+                setFoodsByDate(response);
+            } catch (error) {
+                console.error('Error fetching food history:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchFoodHistory();
+    }, [selectedDate]); // Keep selectedDate dependency for re-fetching when date changes
+
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+    const foodsForSelectedDate = foodsByDate[selectedDateStr] || [];    // Format date for header
+    const getFormattedDate = (date: Date) => {
+        const today = startOfDay(new Date());
+        const yesterday = subDays(today, 1);
+
+        if (date.getTime() === today.getTime()) {
+            return `Today, ${format(date, 'dd/MM/yy')}`;
+        } else if (date.getTime() === yesterday.getTime()) {
+            return `Yesterday, ${format(date, 'dd/MM/yy')}`;
+        } else {
+            return format(date, 'EEEE, dd/MM/yy');
+        }
+    };
+
+    return (
+        <SafeAreaProvider>
+            <SafeAreaView edges={['top']} style={styles.safeArea}>
+                <ThemedView style={styles.container}>
+                    <View style={styles.header}>
+                        <ThemedText style={styles.headerTitle}>
+                            {getFormattedDate(selectedDate)}
+                        </ThemedText>
+                    </View>
+
+                    <WeekDayPicker
+                        selectedDate={selectedDate}
+                        onSelectDate={setSelectedDate}
+                        dates={weekDates}
+                    />
+
+                    {isLoading ? (
+                        <ActivityIndicator style={styles.loader} size="large" color="#163166" />
+                    ) : foodsForSelectedDate.length > 0 ? (
+                        <FlatList
+                            data={foodsForSelectedDate}
+                            renderItem={({ item }) => (<FoodCard id={item.id}
+                                name={item.name}
+                                mealTime={item.mealTime}
+                                calories={item.calories}
+                                imageUrl={item.imageUrl}
+                            />
+                            )}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.listContent}
+                        />
+                    ) : (
+                        <ThemedView style={styles.emptyState}>
+                            <ThemedText style={styles.emptyText}>
+                                No meals recorded for this day
+                            </ThemedText>
+                        </ThemedView>
+                    )}
+                </ThemedView>
+            </SafeAreaView>
+        </SafeAreaProvider>
+    );
+}
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+    },
+    header: {
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        marginTop: 8,
+    },
+    headerTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#163166',
+        textAlign: 'center',
+        letterSpacing: 0.35,
+    },
+    listContent: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+    },
+    loader: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    emptyState: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    emptyText: {
+        fontSize: 18,
+        textAlign: 'center',
+        opacity: 0.7,
+        lineHeight: 24,
+    },
+});

@@ -195,6 +195,56 @@ class Food {
             throw error;
         }
     }
+
+    /**
+     * Find foods by date range for a user
+     * @param {String} userId - User ID
+     * @param {String} startDate - Start date in ISO format
+     * @param {String} endDate - End date in ISO format
+     * @returns {Array} Array of food objects
+     */    static async findByDateRange(userId, startDate, endDate) {
+        try {
+            console.log('Finding foods for user:', userId, 'between', startDate, 'and', endDate);
+
+            // Get all foods for the user without any date filtering
+            const snapshot = await foodsCollection
+                .where('user_id', '==', userId)
+                .get();
+
+            const foods = [];
+
+            // Filter and map the results in memory
+            snapshot.forEach(doc => {
+                const food = { id: doc.id, ...doc.data() };
+
+                // Extract just the date part from created_at for comparison
+                const foodDate = food.created_at ? food.created_at.split('T')[0] : null;
+
+                console.log('Checking food:', {
+                    id: food.id,
+                    name: food.food_name,
+                    created: food.created_at,
+                    foodDate
+                });
+
+                if (foodDate && foodDate >= startDate && foodDate <= endDate) {
+                    foods.push(food);
+                }
+            });
+
+            console.log('Found', foods.length, 'foods in date range');
+
+            // Sort by created_at in memory
+            return foods.sort((a, b) => {
+                if (!a.created_at) return 1;
+                if (!b.created_at) return -1;
+                return a.created_at.localeCompare(b.created_at);
+            });
+        } catch (error) {
+            console.error('Error finding foods by date range:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Food;

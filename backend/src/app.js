@@ -36,11 +36,13 @@ app.use('/static/text-mock.jpg', (req, res) => {
 
 // Import routes
 const indexRoutes = require('./routes/index');
-const testRoutes = require('./routes/test'); // Add test routes
+const testRoutes = require('./routes/test');
+const foodHistoryRoutes = require('./routes/foodHistory');
 
 // Use routes
 app.use('/', indexRoutes);
-app.use('/api/test', testRoutes); // Add test routes
+app.use('/api/test', testRoutes);
+app.use('/api/food-history', foodHistoryRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

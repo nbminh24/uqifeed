@@ -3,24 +3,24 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-const tintColorLight = '#163166';
-const tintColorDark = '#163166';
+const tintColorLight = '#64FFDA'; // Bright mint color
+const tintColorDark = '#64FFDA'; // Same bright mint for dark mode
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: '#1E2A3A', // Dark blue-black for text
+    background: '#FFFFFF', // Pure white background
+    tint: '#1E2A3A', // Dark blue-black for primary elements
+    icon: '#1E2A3A', // Dark blue-black for icons
+    tabIconDefault: '#90A4AE', // Blue-grey for inactive tabs
+    tabIconSelected: '#1E2A3A', // Dark blue-black for selected tab
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#E0F2F1', // Light cyan-tinted white for text
+    background: '#162436', // Deep blue-black background
+    tint: '#64FFDA', // Bright mint for primary elements
+    icon: '#64FFDA', // Bright mint for icons
+    tabIconDefault: '#546E7A', // Darker blue-grey for inactive tabs
+    tabIconSelected: '#64FFDA', // Bright mint for selected tab
   },
 };
