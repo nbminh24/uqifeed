@@ -19,7 +19,13 @@ export function NutritionChart({
     proteins,
     maxCalories = 2000 // Default daily calorie target
 }: NutritionChartProps) {
-    const progressValue = (calories / maxCalories) * 100;
+    const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10;
+
+    // Calculate values
+    const progressValue = Math.round((calories / maxCalories) * 100);
+    const carbsWidth = Math.min(100, Math.round((carbs / 150) * 100));
+    const fatsWidth = Math.min(100, Math.round((fats / 80) * 100));
+    const proteinsWidth = Math.min(100, Math.round((proteins / 80) * 100));
 
     return (
         <ThemedView style={styles.container}>
@@ -39,36 +45,51 @@ export function NutritionChart({
                         inActiveStrokeWidth={10}
                         progressValueStyle={{ fontSize: 20, fontWeight: '600' }}
                     />
+                    <ThemedText style={styles.calorieText}>
+                        {Math.round(calories)} / {Math.round(maxCalories)} kcal
+                    </ThemedText>
                 </View>
 
                 <View style={styles.nutrientsContainer}>
                     <View style={styles.nutrientItem}>
                         <View style={styles.nutrientHeader}>
                             <ThemedText style={styles.nutrientLabel}>Carbs</ThemedText>
-                            <ThemedText style={styles.nutrientValue}>{carbs}g</ThemedText>
+                            <ThemedText style={styles.nutrientValue}>{roundToOneDecimal(carbs)}g</ThemedText>
                         </View>
                         <View style={styles.progressBarContainer}>
-                            <View style={[styles.progressBar, styles.carbsProgress, { width: `${(carbs / 150) * 100}%` }]} />
+                            <View style={[
+                                styles.progressBar,
+                                styles.carbsProgress,
+                                { flex: carbsWidth / 100 }
+                            ]} />
                         </View>
                     </View>
 
                     <View style={styles.nutrientItem}>
                         <View style={styles.nutrientHeader}>
                             <ThemedText style={styles.nutrientLabel}>Fats</ThemedText>
-                            <ThemedText style={styles.nutrientValue}>{fats}g</ThemedText>
+                            <ThemedText style={styles.nutrientValue}>{roundToOneDecimal(fats)}g</ThemedText>
                         </View>
                         <View style={styles.progressBarContainer}>
-                            <View style={[styles.progressBar, styles.fatsProgress, { width: `${(fats / 80) * 100}%` }]} />
+                            <View style={[
+                                styles.progressBar,
+                                styles.fatsProgress,
+                                { flex: fatsWidth / 100 }
+                            ]} />
                         </View>
                     </View>
 
                     <View style={styles.nutrientItem}>
                         <View style={styles.nutrientHeader}>
                             <ThemedText style={styles.nutrientLabel}>Proteins</ThemedText>
-                            <ThemedText style={styles.nutrientValue}>{proteins}g</ThemedText>
+                            <ThemedText style={styles.nutrientValue}>{roundToOneDecimal(proteins)}g</ThemedText>
                         </View>
                         <View style={styles.progressBarContainer}>
-                            <View style={[styles.progressBar, styles.proteinsProgress, { width: `${(proteins / 80) * 100}%` }]} />
+                            <View style={[
+                                styles.progressBar,
+                                styles.proteinsProgress,
+                                { flex: proteinsWidth / 100 }
+                            ]} />
                         </View>
                     </View>
                 </View>
@@ -140,5 +161,13 @@ const styles = StyleSheet.create({
     },
     proteinsProgress: {
         backgroundColor: '#32CD32',
+    },
+    calorieText: {
+        position: 'absolute',
+        alignSelf: 'center',
+        top: '40%',
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#000',
     },
 });

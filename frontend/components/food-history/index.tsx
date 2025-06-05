@@ -32,18 +32,32 @@ export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScre
             dates.push(subDays(today, i));
         }
         setWeekDates(dates);
-    }, []); // Remove selectedDate dependency since we want fixed week view
-
-    // Fetch food history when selected date changes
+    }, []); // Remove selectedDate dependency since we want fixed week view    // Fetch food history when selected date changes
     useEffect(() => {
         const fetchFoodHistory = async () => {
             try {
                 setIsLoading(true);
-                const today = startOfDay(new Date());
-                const startDate = format(subDays(today, 6), 'yyyy-MM-dd');
-                const endDate = format(today, 'yyyy-MM-dd');
-                const response = await getFoodHistory(startDate, endDate);
-                setFoodsByDate(response);
+
+                // Get date string for the selected date
+                const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+
+                // Check if we already have data for this date to avoid unnecessary fetches
+                if (foodsByDate[selectedDateStr] !== undefined) {
+                    console.log(`Already have data for ${selectedDateStr}, skipping fetch`);
+                    setIsLoading(false);
+                    return;
+                }
+
+                console.log(`Fetching data for ${selectedDateStr}`);
+
+                // Only fetch for the selected date to optimize performance
+                const response = await getFoodHistory(selectedDateStr, selectedDateStr);
+
+                // Merge new data with existing data
+                setFoodsByDate(prev => ({
+                    ...prev,
+                    ...response
+                }));
             } catch (error) {
                 console.error('Error fetching food history:', error);
             } finally {
@@ -52,7 +66,7 @@ export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScre
         };
 
         fetchFoodHistory();
-    }, [selectedDate]); // Keep selectedDate dependency for re-fetching when date changes
+    }, [selectedDate]); // Only re-fetch when selected date changes
 
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
     const foodsForSelectedDate = foodsByDate[selectedDateStr] || [];    // Format date for header
@@ -104,13 +118,14 @@ export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScre
                                         selectedDate={selectedDate}
                                         onSelectDate={setSelectedDate}
                                         dates={weekDates}
-                                    />
-                                    <NutritionChart
-                                        calories={foodsForSelectedDate.reduce((sum, food) => sum + (food.calories || 0), 0)}
-                                        carbs={foodsForSelectedDate.reduce((sum, food) => sum + (food.carbs || 0), 0)}
-                                        fats={foodsForSelectedDate.reduce((sum, food) => sum + (food.fats || 0), 0)}
-                                        proteins={foodsForSelectedDate.reduce((sum, food) => sum + (food.proteins || 0), 0)}
-                                    />
+                                    />                                    {foodsForSelectedDate.length > 0 && (
+                                        <NutritionChart
+                                            calories={foodsForSelectedDate.reduce((total, item) => total + item.calories, 0)}
+                                            carbs={foodsForSelectedDate.reduce((total, item) => total + (item.carbs || 0), 0)}
+                                            proteins={foodsForSelectedDate.reduce((total, item) => total + (item.proteins || 0), 0)}
+                                            fats={foodsForSelectedDate.reduce((total, item) => total + (item.fats || 0), 0)}
+                                        />
+                                    )}
                                 </>
                             )}
                             ListEmptyComponent={() => (

@@ -18,14 +18,18 @@ exports.getFoodsByDate = async (req, res) => {
             return sendErrorResponse(res, 'Invalid date format', 400);
         }
 
-        // Get foods for date range
+        // Format dates as strings (YYYY-MM-DD)
+        const startDateStr = start.toISOString().split('T')[0];
+        const endDateStr = end.toISOString().split('T')[0];
+
+        // Get foods for date range using optimized query
         const foods = await Food.findByDateRange(
             userId,
-            start.toISOString().split('T')[0], // Just use the date part
-            end.toISOString().split('T')[0]
+            startDateStr,
+            endDateStr
         );
 
-        // Group foods by date
+        // Group foods by date - the foods are already filtered by date range
         const foodsByDate = foods.reduce((acc, food) => {
             const dateKey = food.created_at.split('T')[0];
             if (!acc[dateKey]) {
@@ -37,7 +41,10 @@ exports.getFoodsByDate = async (req, res) => {
                 calories: food.total_calorie || 0,
                 nutritionScore: 0, // Will need to get this from another collection if needed
                 mealTime: food.created_at,
-                imageUrl: food.food_image
+                imageUrl: food.food_image,
+                carbs: food.total_carb || 0,
+                fats: food.total_fat || 0,
+                proteins: food.total_protein || 0
             });
             return acc;
         }, {});

@@ -41,6 +41,9 @@ type Styles = {
 };
 
 export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionScore, food, targetNutrition, mealType }) => {
+    // Add rounding function
+    const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10;
+
     // Get color based on percentage difference from target
     const getDeviationColor = (percentage: number): string => {
         const diff = Math.abs(100 - percentage);
@@ -193,13 +196,13 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                 if (typeLower === 'calories' || typeLower === 'calorie') {
                     return `${Math.round(food.total_calorie || 0)} kcal`;
                 } else if (typeLower === 'carbs' || typeLower === 'carb') {
-                    return `${Math.round(food.total_carb || 0)} g`;
+                    return `${roundToOneDecimal(food.total_carb || 0)} g`;
                 } else if (typeLower === 'protein') {
-                    return `${Math.round(food.total_protein || 0)} g`;
+                    return `${roundToOneDecimal(food.total_protein || 0)} g`;
                 } else if (typeLower === 'fat') {
-                    return `${Math.round(food.total_fat || 0)} g`;
+                    return `${roundToOneDecimal(food.total_fat || 0)} g`;
                 } else if (typeLower === 'fiber') {
-                    return `${Math.round(food.total_fiber || 0)} g`;
+                    return `${roundToOneDecimal(food.total_fiber || 0)} g`;
                 }
             } catch (error) {
                 console.error(`[NutrientCard] Error getting food value for ${typeLower}:`, error);
@@ -215,13 +218,13 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
                 if (typeLower === 'calories' || typeLower === 'calorie') {
                     return `${Math.round(comparisons.calories?.food || 0)} kcal`;
                 } else if (typeLower === 'carbs' || typeLower === 'carb') {
-                    return `${Math.round(comparisons.carbs?.food || 0)} g`;
+                    return `${roundToOneDecimal(comparisons.carbs?.food || 0)} g`;
                 } else if (typeLower === 'protein') {
-                    return `${Math.round(comparisons.protein?.food || 0)} g`;
+                    return `${roundToOneDecimal(comparisons.protein?.food || 0)} g`;
                 } else if (typeLower === 'fat') {
-                    return `${Math.round(comparisons.fat?.food || 0)} g`;
+                    return `${roundToOneDecimal(comparisons.fat?.food || 0)} g`;
                 } else if (typeLower === 'fiber') {
-                    return `${Math.round(comparisons.fiber?.food || 0)} g`;
+                    return `${roundToOneDecimal(comparisons.fiber?.food || 0)} g`;
                 }
             } catch (error) {
                 console.error(`[NutrientCard] Error getting nutrition score value for ${typeLower}:`, error);
@@ -233,9 +236,9 @@ export const NutrientCard: React.FC<NutrientCardProps> = ({ nutrient, nutritionS
         const value = Math.abs(nutrient.nutrition_delta);
 
         if (typeLower === 'calories' || typeLower === 'calorie') {
-            return `${value} kcal`;
+            return `${Math.round(value)} kcal`;
         } else {
-            return `${value} g`;
+            return `${roundToOneDecimal(value)} g`;
         }
     };
 

@@ -206,39 +206,32 @@ class Food {
         try {
             console.log('Finding foods for user:', userId, 'between', startDate, 'and', endDate);
 
-            // Get all foods for the user without any date filtering
-            const snapshot = await foodsCollection
+            // For Firestore date comparisons
+            const startDateTime = new Date(startDate);
+            startDateTime.setHours(0, 0, 0, 0);
+            const endDateTime = new Date(endDate);
+            endDateTime.setHours(23, 59, 59, 999);
+
+            // Create compound query to filter by both user_id and date range
+            let query = foodsCollection
                 .where('user_id', '==', userId)
-                .get();
+                .where('created_at', '>=', startDateTime.toISOString())
+                .where('created_at', '<=', endDateTime.toISOString());            // Execute the query
+            const snapshot = await query.get();
 
+            // Convert snapshot to array of foods
             const foods = [];
-
-            // Filter and map the results in memory
             snapshot.forEach(doc => {
-                const food = { id: doc.id, ...doc.data() };
-
-                // Extract just the date part from created_at for comparison
-                const foodDate = food.created_at ? food.created_at.split('T')[0] : null;
-
-                console.log('Checking food:', {
-                    id: food.id,
-                    name: food.food_name,
-                    created: food.created_at,
-                    foodDate
-                });
-
-                if (foodDate && foodDate >= startDate && foodDate <= endDate) {
-                    foods.push(food);
-                }
+                foods.push({ id: doc.id, ...doc.data() });
             });
 
-            console.log('Found', foods.length, 'foods in date range');
+            console.log('Found', foods.length, 'foods for date range:', startDate, 'to', endDate);
 
-            // Sort by created_at in memory
+            // Sort by created_at in descending order (newest first)
             return foods.sort((a, b) => {
                 if (!a.created_at) return 1;
                 if (!b.created_at) return -1;
-                return a.created_at.localeCompare(b.created_at);
+                return b.created_at.localeCompare(a.created_at); // Descending order
             });
         } catch (error) {
             console.error('Error finding foods by date range:', error);

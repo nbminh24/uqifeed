@@ -17,15 +17,20 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
     const carbsPercentage = total > 0 ? (carbs / total) * 100 : 0;
     const fatsPercentage = total > 0 ? (fats / total) * 100 : 0;
 
+    // Round to 1 decimal place
+    const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10;
+
     return (
         <View style={styles.nutritionCard}>
             <View style={styles.nutritionHeaderRow}>
                 <ThemedText style={styles.sectionTitle}>Calories & macros</ThemedText>
-            </View>            <View style={styles.caloriesRow}>
+            </View>
+
+            <View style={styles.caloriesRow}>
                 <View style={styles.caloriesIconContainer}>
                     <Ionicons name="flame" size={36} color="#FF6B6B" />
                 </View>
-                <ThemedText style={styles.caloriesValue}>{Math.round(calories) || 0}</ThemedText>
+                <ThemedText style={styles.caloriesValue}>{Math.round(calories)}</ThemedText>
                 <ThemedText style={styles.caloriesUnit}>kcal</ThemedText>
             </View>
 
@@ -39,19 +44,19 @@ export const CaloriesAndMacros: React.FC<CaloriesAndMacrosProps> = ({ calories, 
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.carbsDot]}></View>
                     <ThemedText style={styles.macroLegendTitle}>Carbs</ThemedText>
-                    <ThemedText style={styles.macroValue}>{carbs || 0}g</ThemedText>
+                    <ThemedText style={styles.macroValue}>{roundToOneDecimal(carbs)}g</ThemedText>
                 </View>
 
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.fatsDot]}></View>
                     <ThemedText style={styles.macroLegendTitle}>Fats</ThemedText>
-                    <ThemedText style={styles.macroValue}>{fats || 0}g</ThemedText>
+                    <ThemedText style={styles.macroValue}>{roundToOneDecimal(fats)}g</ThemedText>
                 </View>
 
                 <View style={styles.macroLegendItem}>
                     <View style={[styles.macroLegendDot, styles.proteinsDot]}></View>
                     <ThemedText style={styles.macroLegendTitle}>Protein</ThemedText>
-                    <ThemedText style={styles.macroValue}>{protein || 0}g</ThemedText>
+                    <ThemedText style={styles.macroValue}>{roundToOneDecimal(protein)}g</ThemedText>
                 </View>
             </View>
         </View>

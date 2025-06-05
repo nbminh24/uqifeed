@@ -20,17 +20,22 @@ export default function FoodHistoryScreen() {
             dates.push(addDays(selectedDate, i));
         }
         setWeekDates(dates);
-    }, [selectedDate]);
-
-    // Fetch food history when selected date changes
+    }, [selectedDate]);    // Fetch food history when selected date changes
     useEffect(() => {
         const fetchFoodHistory = async () => {
             try {
                 setIsLoading(true);
-                const startDate = format(subDays(selectedDate, 3), 'yyyy-MM-dd');
-                const endDate = format(addDays(selectedDate, 3), 'yyyy-MM-dd');
-                const response = await getFoodHistory(startDate, endDate);
-                setFoodsByDate(response);
+
+                // Only fetch data for the current selected date
+                const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+
+                // Optimize by only fetching for the single selected date
+                const response = await getFoodHistory(selectedDateStr, selectedDateStr);
+
+                setFoodsByDate(prev => ({
+                    ...prev,
+                    ...response
+                }));
             } catch (error) {
                 console.error('Error fetching food history:', error);
             } finally {
@@ -57,14 +62,13 @@ export default function FoodHistoryScreen() {
             ) : foodsForSelectedDate.length > 0 ? (
                 <FlatList
                     data={foodsForSelectedDate}
-                    renderItem={({ item }) => (
-                        <FoodCard
-                            name={item.name}
-                            mealTime={item.mealTime}
-                            calories={item.calories}
-                            nutritionScore={item.nutritionScore}
-                            imageUrl={item.imageUrl}
-                        />
+                    renderItem={({ item }) => (<FoodCard
+                        id={item.id}
+                        name={item.name}
+                        mealTime={item.mealTime}
+                        calories={item.calories}
+                        imageUrl={item.imageUrl}
+                    />
                     )}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContent}
