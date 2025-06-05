@@ -7,6 +7,7 @@ import { WeekDayPicker } from './WeekDayPicker';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { getFoodHistory, FoodHistoryItem } from '@/services/foodHistoryService';
+import { NutritionChart } from './NutritionChart';
 
 type FoodHistoryScreenProps = {
     mascotUri?: string;
@@ -99,11 +100,16 @@ export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScre
                                         <ThemedText style={styles.headerTitle}>
                                             {getFormattedDate(selectedDate)}
                                         </ThemedText>
-                                    </View>
-                                    <WeekDayPicker
+                                    </View>                                    <WeekDayPicker
                                         selectedDate={selectedDate}
                                         onSelectDate={setSelectedDate}
                                         dates={weekDates}
+                                    />
+                                    <NutritionChart
+                                        calories={foodsForSelectedDate.reduce((sum, food) => sum + (food.calories || 0), 0)}
+                                        carbs={foodsForSelectedDate.reduce((sum, food) => sum + (food.carbs || 0), 0)}
+                                        fats={foodsForSelectedDate.reduce((sum, food) => sum + (food.fats || 0), 0)}
+                                        proteins={foodsForSelectedDate.reduce((sum, food) => sum + (food.proteins || 0), 0)}
                                     />
                                 </>
                             )}

@@ -7,6 +7,9 @@ export interface FoodHistoryItem {
     nutritionScore: number;
     mealTime: string;
     imageUrl?: string;
+    carbs: number;
+    fats: number;
+    proteins: number;
 }
 
 export interface FoodHistoryByDate {
