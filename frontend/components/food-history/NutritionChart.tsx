@@ -23,9 +23,13 @@ export function NutritionChart({
 
     // Calculate values
     const progressValue = Math.round((calories / maxCalories) * 100);
-    const carbsWidth = Math.min(100, Math.round((carbs / 150) * 100));
-    const fatsWidth = Math.min(100, Math.round((fats / 80) * 100));
-    const proteinsWidth = Math.min(100, Math.round((proteins / 80) * 100));
+    const carbsWidth = Math.round((carbs / 150) * 100);
+    const fatsWidth = Math.round((fats / 80) * 100);
+    const proteinsWidth = Math.round((proteins / 80) * 100);
+
+    const getProgressColor = (percentage: number) => {
+        return percentage > 100 ? '#FF0000' : '#1E2A3A';
+    };
 
     return (
         <ThemedView style={styles.container}>
@@ -37,13 +41,12 @@ export function NutritionChart({
                         duration={2000}
                         progressValueColor={'#000'}
                         maxValue={100}
-                        title={'Kcal eaten'}
-                        titleColor={'#8E8E8E'}
-                        titleStyle={{ fontWeight: '300', fontSize: 12 }}
-                        valueSuffix={''}
+                        title={''}
+                        progressValueStyle={{ fontSize: 24, fontWeight: '700' }}
                         activeStrokeWidth={10}
                         inActiveStrokeWidth={10}
-                        progressValueStyle={{ fontSize: 20, fontWeight: '600' }}
+                        valueSuffix={'%'}
+                        activeStrokeColor={getProgressColor(progressValue)}
                     />
                     <ThemedText style={styles.calorieText}>
                         {Math.round(calories)} / {Math.round(maxCalories)} kcal
@@ -59,8 +62,10 @@ export function NutritionChart({
                         <View style={styles.progressBarContainer}>
                             <View style={[
                                 styles.progressBar,
-                                styles.carbsProgress,
-                                { flex: carbsWidth / 100 }
+                                {
+                                    width: `${carbsWidth}%`,
+                                    backgroundColor: getProgressColor(carbsWidth)
+                                }
                             ]} />
                         </View>
                     </View>
@@ -73,8 +78,10 @@ export function NutritionChart({
                         <View style={styles.progressBarContainer}>
                             <View style={[
                                 styles.progressBar,
-                                styles.fatsProgress,
-                                { flex: fatsWidth / 100 }
+                                {
+                                    width: `${fatsWidth}%`,
+                                    backgroundColor: getProgressColor(fatsWidth)
+                                }
                             ]} />
                         </View>
                     </View>
@@ -87,8 +94,10 @@ export function NutritionChart({
                         <View style={styles.progressBarContainer}>
                             <View style={[
                                 styles.progressBar,
-                                styles.proteinsProgress,
-                                { flex: proteinsWidth / 100 }
+                                {
+                                    width: `${proteinsWidth}%`,
+                                    backgroundColor: getProgressColor(proteinsWidth)
+                                }
                             ]} />
                         </View>
                     </View>
@@ -113,14 +122,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
-    },
-    contentContainer: {
+    }, contentContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-    },
-    circularChartContainer: {
+    }, circularChartContainer: {
         flex: 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        marginLeft: -20,
     },
     nutrientsContainer: {
         flex: 3,
@@ -142,32 +153,26 @@ const styles = StyleSheet.create({
     nutrientValue: {
         fontSize: 14,
         fontWeight: '600',
-    },
-    progressBarContainer: {
+    }, progressBarContainer: {
         height: 8,
         backgroundColor: '#F0F0F0',
         borderRadius: 4,
         overflow: 'hidden',
+        position: 'relative',
+        width: '100%',
     },
     progressBar: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
         height: '100%',
         borderRadius: 4,
     },
-    carbsProgress: {
-        backgroundColor: '#FFD700',
-    },
-    fatsProgress: {
-        backgroundColor: '#4169E1',
-    },
-    proteinsProgress: {
-        backgroundColor: '#32CD32',
-    },
     calorieText: {
-        position: 'absolute',
-        alignSelf: 'center',
-        top: '40%',
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#000',
+        marginTop: 8,
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#666',
+        textAlign: 'center',
     },
 });
