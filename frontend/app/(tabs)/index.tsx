@@ -84,10 +84,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     paddingTop: MASCOT_SIZE - 90, // Bù thêm vì mascot bị cắt
-  },
-  floatingButtonsContainer: {
+  }, floatingButtonsContainer: {
     position: 'absolute',
-    bottom: 90,
+    top: 90, // Điều chỉnh khoảng cách từ trên xuống
     right: 16,
     flexDirection: 'column',
     gap: 10,
