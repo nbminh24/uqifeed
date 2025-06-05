@@ -1,85 +1,96 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import { format, addDays, subDays, startOfDay } from 'date-fns';
-import { FoodCard } from '@/components/food-history/FoodCard';
-import { WeekDayPicker } from '@/components/food-history/WeekDayPicker';
+import React from 'react';
+import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { getFoodHistory, FoodHistoryItem } from '@/services/foodHistoryService';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function FoodHistoryScreen() {
-    const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
-    const [weekDates, setWeekDates] = useState<Date[]>([]);
-    const [foodsByDate, setFoodsByDate] = useState<{ [key: string]: FoodHistoryItem[] }>({});
-    const [isLoading, setIsLoading] = useState(true);
+interface SettingItemProps {
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    onPress: () => void;
+    hasArrow?: boolean;
+    value?: string;
+}
 
-    // Initialize week dates
-    useEffect(() => {
-        const dates = [];
-        for (let i = -3; i <= 3; i++) {
-            dates.push(addDays(selectedDate, i));
-        }
-        setWeekDates(dates);
-    }, [selectedDate]);    // Fetch food history when selected date changes
-    useEffect(() => {
-        const fetchFoodHistory = async () => {
-            try {
-                setIsLoading(true);
+const SettingItem: React.FC<SettingItemProps> = ({ icon, title, onPress, hasArrow = true, value }) => (
+    <TouchableOpacity style={styles.settingItem} onPress={onPress}>
+        <View style={styles.settingItemLeft}>
+            <Ionicons name={icon} size={24} color="#163166" style={styles.settingIcon} />
+            <ThemedText style={styles.settingTitle}>{title}</ThemedText>
+        </View>
+        <View style={styles.settingItemRight}>
+            {value && <ThemedText style={styles.settingValue}>{value}</ThemedText>}
+            {hasArrow && <Ionicons name="chevron-forward" size={20} color="#999" />}
+        </View>
+    </TouchableOpacity>
+);
 
-                // Only fetch data for the current selected date
-                const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-
-                // Optimize by only fetching for the single selected date
-                const response = await getFoodHistory(selectedDateStr, selectedDateStr);
-
-                setFoodsByDate(prev => ({
-                    ...prev,
-                    ...response
-                }));
-            } catch (error) {
-                console.error('Error fetching food history:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchFoodHistory();
-    }, [selectedDate]);
-
-    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-    const foodsForSelectedDate = foodsByDate[selectedDateStr] || [];
-
+export default function SettingsScreen() {
     return (
         <ThemedView style={styles.container}>
-            <WeekDayPicker
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-                dates={weekDates}
-            />
-
-            {isLoading ? (
-                <ActivityIndicator style={styles.loader} size="large" />
-            ) : foodsForSelectedDate.length > 0 ? (
-                <FlatList
-                    data={foodsForSelectedDate}
-                    renderItem={({ item }) => (<FoodCard
-                        id={item.id}
-                        name={item.name}
-                        mealTime={item.mealTime}
-                        calories={item.calories}
-                        imageUrl={item.imageUrl}
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>Account</ThemedText>
+                    <SettingItem
+                        icon="person-outline"
+                        title="Profile"
+                        onPress={() => { }}
                     />
-                    )}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.listContent}
-                />
-            ) : (
-                <ThemedView style={styles.emptyState}>
-                    <ThemedText style={styles.emptyText}>
-                        No meals recorded for this day
-                    </ThemedText>
-                </ThemedView>
-            )}
+                    <SettingItem
+                        icon="notifications-outline"
+                        title="Notifications"
+                        onPress={() => { }}
+                    />
+                    <SettingItem
+                        icon="lock-closed-outline"
+                        title="Privacy"
+                        onPress={() => { }}
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>Nutrition</ThemedText>
+                    <SettingItem
+                        icon="fitness-outline"
+                        title="Goals"
+                        onPress={() => { }}
+                    />
+                    <SettingItem
+                        icon="barbell-outline"
+                        title="Daily Targets"
+                        onPress={() => { }}
+                    />
+                    <SettingItem
+                        icon="restaurant-outline"
+                        title="Meal Preferences"
+                        onPress={() => { }}
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>App</ThemedText>
+                    <SettingItem
+                        icon="language-outline"
+                        title="Language"
+                        value="English"
+                        onPress={() => { }}
+                    />
+                    <SettingItem
+                        icon="help-circle-outline"
+                        title="Help & Support"
+                        onPress={() => { }}
+                    />
+                    <SettingItem
+                        icon="information-circle-outline"
+                        title="About"
+                        onPress={() => { }}
+                    />
+                </View>
+
+                <TouchableOpacity style={styles.logoutButton} onPress={() => { }}>
+                    <ThemedText style={styles.logoutText}>Log Out</ThemedText>
+                </TouchableOpacity>
+            </ScrollView>
         </ThemedView>
     );
 }
@@ -87,23 +98,65 @@ export default function FoodHistoryScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#F5F6FA',
     },
-    listContent: {
-        paddingVertical: 8,
-    },
-    loader: {
+    scrollView: {
         flex: 1,
-        justifyContent: 'center',
+    },
+    section: {
+        backgroundColor: '#FFFFFF',
+        marginVertical: 8,
+        marginHorizontal: 16,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#666',
+        marginHorizontal: 16,
+        marginVertical: 12,
+        textTransform: 'uppercase',
+    },
+    settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#E1E4E8',
+    },
+    settingItemLeft: {
+        flexDirection: 'row',
         alignItems: 'center',
     },
-    emptyState: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+    settingIcon: {
+        marginRight: 12,
     },
-    emptyText: {
+    settingTitle: {
         fontSize: 16,
-        textAlign: 'center',
-        opacity: 0.7,
+        color: '#333',
     },
+    settingItemRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    settingValue: {
+        fontSize: 16,
+        color: '#666',
+        marginRight: 8,
+    },
+    logoutButton: {
+        marginVertical: 24,
+        marginHorizontal: 16,
+        padding: 16,
+        backgroundColor: '#FF6B6B',
+        borderRadius: 12,
+        alignItems: 'center',
+    }, logoutText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FFFFFF',
+    }
 });

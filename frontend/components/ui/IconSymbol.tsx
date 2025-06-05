@@ -19,6 +19,10 @@ const MAPPING = {
   'calendar.badge.clock': 'history',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'camera.fill': 'camera',
+  'chart.pie.fill': 'pie-chart',
+  'person.circle.fill': 'account-circle',
+  'gearshape.fill': 'settings'
 } as IconMapping;
 
 /**

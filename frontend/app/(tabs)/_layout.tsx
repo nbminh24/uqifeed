@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -27,28 +28,27 @@ export default function TabLayout() {
           },
           default: {},
         }),
-      }}>
-      <Tabs.Screen
+      }}>      <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
           headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Week',
-          headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="food-history"
+        name="explore"
         options={{
-          title: 'History',
+          title: 'Report',
           headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar.badge.clock" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="assessment" color={color} />,
+        }}
+      />      <Tabs.Screen
+        name="food-history/index"
+        options={{
+          title: 'Settings',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="settings" color={color} />,
         }}
       />
     </Tabs>
