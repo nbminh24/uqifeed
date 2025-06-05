@@ -38,7 +38,9 @@ export function FoodCard({ id, name, mealTime, calories, imageUrl }: FoodCardPro
             pathname: '/food-details',
             params: { id }
         });
-    }; return (
+    };
+
+    return (
         <TouchableOpacity onPress={handlePress}>
             <ThemedView style={[styles.card, { backgroundColor: cardBackground }]}>
                 {imageUrl && (
@@ -47,13 +49,12 @@ export function FoodCard({ id, name, mealTime, calories, imageUrl }: FoodCardPro
                         style={styles.image}
                         resizeMode="cover"
                     />
-                )}                <View style={styles.content}>
+                )}
+                <View style={styles.content}>
                     <ThemedText style={styles.name}>{name}</ThemedText>
                     <View style={styles.infoRow}>
-                        <ThemedText style={styles.calories}>{calories} kcal</ThemedText>
-                        <ThemedText style={[styles.time, { color: timeColor }]}>
-                            {formattedTime}
-                        </ThemedText>
+                        <ThemedText style={[styles.time, { color: timeColor }]}>{formattedTime}</ThemedText>
+                        <ThemedText style={styles.calories}>{calories} cal</ThemedText>
                     </View>
                 </View>
             </ThemedView>
@@ -64,17 +65,14 @@ export function FoodCard({ id, name, mealTime, calories, imageUrl }: FoodCardPro
 const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
-        borderRadius: 12,
-        marginVertical: 6,
         marginHorizontal: 16,
+        marginVertical: 8,
+        borderRadius: 12,
         padding: 12,
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowRadius: 4,
         elevation: 3,
     },
     image: {
@@ -82,28 +80,26 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 8,
         marginRight: 12,
-    }, content: {
+    },
+    content: {
         flex: 1,
-        justifyContent: 'flex-start',
-        paddingVertical: 4,
+        justifyContent: 'space-between',
     },
     name: {
         fontSize: 16,
         fontWeight: '600',
-        marginBottom: 8,
-    }, infoRow: {
+        marginBottom: 4,
+    },
+    infoRow: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 20,
+        alignItems: 'center',
     },
     time: {
-        fontSize: 13,
-        opacity: 0.8,
+        fontSize: 14,
     },
     calories: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: '500',
-        color: '#666',
-    },
+    }
 });

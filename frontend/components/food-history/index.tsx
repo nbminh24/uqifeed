@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, ActivityIndicator, View, Platform } from 'react-native';
+import { StyleSheet, FlatList, ActivityIndicator, View, Platform, Image } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { format, addDays, subDays, startOfDay } from 'date-fns';
 import { FoodCard } from './FoodCard';
@@ -8,14 +8,19 @@ import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { getFoodHistory, FoodHistoryItem } from '@/services/foodHistoryService';
 
-export function FoodHistoryScreen() {
+type FoodHistoryScreenProps = {
+    mascotUri?: string;
+    mascotSize?: number;
+};
+
+export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScreenProps) {
     const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
     const [weekDates, setWeekDates] = useState<Date[]>([]);
     const [foodsByDate, setFoodsByDate] = useState<{ [key: string]: FoodHistoryItem[] }>({});
     const [isLoading, setIsLoading] = useState(true);
 
     // Add safe area padding for iOS status bar and tabs
-    const statusBarHeight = 50; // Điều chỉnh khoảng cách cho status bar
+    const statusBarHeight = 50;// Điều chỉnh khoảng cách cho status bar
 
     // Initialize week dates
     useEffect(() => {
@@ -61,45 +66,66 @@ export function FoodHistoryScreen() {
         } else {
             return format(date, 'EEEE, dd/MM/yy');
         }
-    };
-
-    return (
+    }; return (
         <SafeAreaProvider>
-            <SafeAreaView edges={['top']} style={styles.safeArea}>
-                <ThemedView style={styles.container}>
-                    <View style={styles.header}>
-                        <ThemedText style={styles.headerTitle}>
-                            {getFormattedDate(selectedDate)}
-                        </ThemedText>
-                    </View>
-
-                    <WeekDayPicker
-                        selectedDate={selectedDate}
-                        onSelectDate={setSelectedDate}
-                        dates={weekDates}
-                    />
-
+            <SafeAreaView style={styles.safeArea} edges={[]}>
+                <ThemedView style={styles.container} lightColor="#FFFFFF">
                     {isLoading ? (
                         <ActivityIndicator style={styles.loader} size="large" color="#163166" />
-                    ) : foodsForSelectedDate.length > 0 ? (
-                        <FlatList
-                            data={foodsForSelectedDate}
-                            renderItem={({ item }) => (<FoodCard id={item.id}
-                                name={item.name}
-                                mealTime={item.mealTime}
-                                calories={item.calories}
-                                imageUrl={item.imageUrl}
-                            />
-                            )}
-                            keyExtractor={(item) => item.id}
-                            contentContainerStyle={styles.listContent}
-                        />
                     ) : (
-                        <ThemedView style={styles.emptyState}>
-                            <ThemedText style={styles.emptyText}>
-                                No meals recorded for this day
-                            </ThemedText>
-                        </ThemedView>
+                        <FlatList
+                            data={foodsForSelectedDate} ListHeaderComponent={() => (
+                                <>                                    {/* Mascot GIF with frame */}
+                                    {mascotUri && (
+                                        <View style={styles.mascotContainer}>
+                                            <View style={styles.mascotFrame}>
+                                                <View style={{
+                                                    overflow: 'hidden',
+                                                    height: mascotSize ? mascotSize - 120 : 250, // Adjusted height
+                                                }}>
+                                                    <Image
+                                                        source={{ uri: mascotUri }}
+                                                        style={{
+                                                            width: mascotSize || 300,
+                                                            height: mascotSize || 300,
+                                                        }}
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )}
+                                    <View style={styles.header}>
+                                        <ThemedText style={styles.headerTitle}>
+                                            {getFormattedDate(selectedDate)}
+                                        </ThemedText>
+                                    </View>
+                                    <WeekDayPicker
+                                        selectedDate={selectedDate}
+                                        onSelectDate={setSelectedDate}
+                                        dates={weekDates}
+                                    />
+                                </>
+                            )}
+                            ListEmptyComponent={() => (
+                                <ThemedView style={styles.emptyState}>
+                                    <ThemedText style={styles.emptyText}>
+                                        No meals recorded for this day
+                                    </ThemedText>
+                                </ThemedView>
+                            )}
+                            renderItem={({ item }) => (
+                                <FoodCard
+                                    id={item.id}
+                                    name={item.name}
+                                    mealTime={item.mealTime}
+                                    calories={item.calories}
+                                    imageUrl={item.imageUrl}
+                                />
+                            )} keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.listContent}
+                            showsVerticalScrollIndicator={false}
+                        />
                     )}
                 </ThemedView>
             </SafeAreaView>
@@ -115,13 +141,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
+        paddingTop: 0, // Ensure no extra padding at the top
     },
     header: {
         backgroundColor: '#FFFFFF',
         paddingVertical: 16,
         paddingHorizontal: 16,
         marginTop: 8,
-
     },
     headerTitle: {
         fontSize: 25,
@@ -129,9 +155,8 @@ const styles = StyleSheet.create({
         color: '#163166',
         textAlign: 'center',
         letterSpacing: 0.35,
-    },
-    listContent: {
-        paddingVertical: 12,
+    }, listContent: {
+        paddingBottom: 100, // Extra padding at the bottom
         paddingHorizontal: 16,
     },
     loader: {
@@ -150,5 +175,22 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         opacity: 0.7,
         lineHeight: 24,
+    },    // Mascot styles
+    mascotContainer: {
+        width: '100%',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+        paddingTop: 20, // Add some space at the top
+    },
+    mascotFrame: {
+        padding: 10,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+    },
+    mascotWrapper: {
+        overflow: 'hidden',
+    },
+    mascot: {
+        // Width and height will be set dynamically
     },
 });

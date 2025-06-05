@@ -5,9 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { LogBox } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { setupNetworkLogging } from '@/utils/networkLogger';
+
+// Ignore specific warning
+LogBox.ignoreLogs(['Text strings must be rendered within a <Text> component']);
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

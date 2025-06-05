@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ThemedView } from '../ThemedView';
 import { ThemedText } from '../ThemedText';
 import { format, isSameDay } from 'date-fns';
@@ -26,7 +26,9 @@ export function WeekDayPicker({ selectedDate, onSelectDate, dates }: WeekDayPick
             dark: '#1E2A3A',
         },
         'text'
-    ); return (
+    );
+
+    return (
         <ThemedView style={styles.container}>
             <ThemedView style={styles.datesRow}>
                 {dates.map((date) => {
@@ -40,18 +42,20 @@ export function WeekDayPicker({ selectedDate, onSelectDate, dates }: WeekDayPick
                                 isSelected && { backgroundColor: selectedBackground }
                             ]}
                         >
-                            <ThemedText style={[
-                                styles.dayName,
-                                isSelected && { color: selectedTextColor }
-                            ]}>
-                                {format(date, 'EEE')}
-                            </ThemedText>
-                            <ThemedText style={[
-                                styles.dayNumber,
-                                isSelected && { color: selectedTextColor }
-                            ]}>
-                                {format(date, 'd')}
-                            </ThemedText>
+                            <View>
+                                <ThemedText style={[
+                                    styles.dayName,
+                                    isSelected && { color: selectedTextColor }
+                                ]}>
+                                    {format(date, 'EEE')}
+                                </ThemedText>
+                                <ThemedText style={[
+                                    styles.dayNumber,
+                                    isSelected && { color: selectedTextColor }
+                                ]}>
+                                    {format(date, 'd')}
+                                </ThemedText>
+                            </View>
                         </TouchableOpacity>
                     );
                 })}
