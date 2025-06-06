@@ -12,7 +12,8 @@ class Profile {
      * Format profile data to ensure dates are in ISO format
      * @param {Object} profile - Profile data to format
      * @returns {Object} Formatted profile data
-     */    static formatProfileData(profile) {
+     */
+    static formatProfileData(profile) {
         if (!profile) return null;
 
         // Ensure dates are in ISO format
@@ -50,6 +51,22 @@ class Profile {
             }
         }
 
+        // Handle numeric values
+        if (formatted.height !== undefined && formatted.height !== null) {
+            formatted.height = parseFloat(formatted.height);
+            if (isNaN(formatted.height)) formatted.height = null;
+        }
+
+        if (formatted.currentWeight !== undefined && formatted.currentWeight !== null) {
+            formatted.currentWeight = parseFloat(formatted.currentWeight);
+            if (isNaN(formatted.currentWeight)) formatted.currentWeight = null;
+        }
+
+        if (formatted.targetWeight !== undefined && formatted.targetWeight !== null) {
+            formatted.targetWeight = parseFloat(formatted.targetWeight);
+            if (isNaN(formatted.targetWeight)) formatted.targetWeight = null;
+        }
+
         return formatted;
     }
 
@@ -64,19 +81,19 @@ class Profile {
             profileData.createdAt = new Date().toISOString();
             profileData.updatedAt = new Date().toISOString();
 
-            // Format dates
-            profileData = this.formatProfileData(profileData);
+            // Format data
+            const formattedData = this.formatProfileData(profileData);
 
             // Check if user already has a profile
-            const existingProfile = await this.findByUserId(profileData.userId);
+            const existingProfile = await this.findByUserId(formattedData.userId);
             if (existingProfile) {
                 throw new Error('User already has a profile');
             }
 
             // Create profile in Firestore
-            const profileRef = await profilesCollection.add(profileData);
+            const profileRef = await profilesCollection.add(formattedData);
 
-            // Get the profile data with ID
+            // Get the created profile
             const profile = await profileRef.get();
             return this.formatProfileData({ id: profile.id, ...profile.data() });
         } catch (error) {
@@ -142,11 +159,19 @@ class Profile {
             // Add timestamp
             profileData.updatedAt = new Date().toISOString();
 
+            // Format data before update
+            const formattedData = this.formatProfileData(profileData);
+            console.log('Formatted data before update:', formattedData); // Debug log
+
             // Update profile in Firestore
-            await profilesCollection.doc(id).update(profileData);
+            await profilesCollection.doc(id).update(formattedData);
 
             // Get the updated profile
-            return await this.findById(id);
+            const updatedDoc = await profilesCollection.doc(id).get();
+            const updatedProfile = this.formatProfileData({ id: updatedDoc.id, ...updatedDoc.data() });
+            console.log('Updated profile:', updatedProfile); // Debug log
+
+            return updatedProfile;
         } catch (error) {
             console.error('Error updating profile:', error);
             throw error;

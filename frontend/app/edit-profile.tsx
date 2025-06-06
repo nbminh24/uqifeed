@@ -12,14 +12,15 @@ import { getProfile, updateProfile } from '@/services/profileService';
 import { router } from 'expo-router';
 import { isValidDate } from '@/services/dateUtils';
 
+// Cập nhật DEFAULT_PROFILE
 const DEFAULT_PROFILE: Profile = {
     id: '',
     userId: '',
     gender: 'Male',
     birthday: new Date().toISOString(),
-    height: 0,
-    currentWeight: 0,
-    targetWeight: 0,
+    height: null,
+    currentWeight: null,
+    targetWeight: null,
     target_time: new Date().toISOString(),
     activityLevel: 'Moderately active',
     goal: 'Maintain weight',
@@ -27,87 +28,169 @@ const DEFAULT_PROFILE: Profile = {
 };
 
 export default function EditProfileScreen() {
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE);
     const [showBirthdayPicker, setShowBirthdayPicker] = useState(false);
     const [showTargetDatePicker, setShowTargetDatePicker] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const loadProfile = async () => {
+        try {
+            setLoadError(null);
+            const data = await getProfile();
+            console.log('Profile data:', data); // Debug log
+
+            if (data) {
+                // Ensure all numeric values are properly parsed
+                const numericHeight = data.height !== undefined ? Number(data.height) : null;
+                const numericCurrentWeight = data.currentWeight !== undefined ? Number(data.currentWeight) : null;
+                const numericTargetWeight = data.targetWeight !== undefined ? Number(data.targetWeight) : null;
+
+                // Update profile with validated data
+                setProfile({
+                    ...data,
+                    height: numericHeight,
+                    currentWeight: numericCurrentWeight,
+                    targetWeight: numericTargetWeight,
+                    // Ensure dates are valid ISO strings
+                    birthday: isValidDate(new Date(data.birthday)) ? data.birthday : new Date().toISOString(),
+                    target_time: isValidDate(new Date(data.target_time)) ? data.target_time : new Date().toISOString(),
+                });
+            }
+        } catch (err) {
+            console.error('[EditProfile] Load Error:', err);
+            setLoadError('Could not load profile data');
+        } finally {
+            setIsInitialLoading(false);
+        }
+    };
 
     useEffect(() => {
         loadProfile();
     }, []);
 
-    const loadProfile = async () => {
+    const formatDisplayDate = (dateString: string) => {
         try {
-            const data = await getProfile();
-
-            // Initialize default values for numeric fields if they're undefined
-            if (data) {
-                setProfile({
-                    ...data,
-                    birthday: isValidDate(data.birthday) ? data.birthday : new Date().toISOString(),
-                    target_time: isValidDate(data.target_time) ? data.target_time : new Date().toISOString()
-                });
+            const date = new Date(dateString);
+            if (isValidDate(date)) {
+                return format(date, 'dd/MM/yyyy');
             }
+            return 'Select date';
         } catch (error) {
-            console.error('Error loading profile:', error);
-            Alert.alert('Lỗi', 'Không thể tải thông tin hồ sơ. Vui lòng thử lại sau.');
-        } finally {
-            setIsLoading(false);
+            console.error('[EditProfile] Date format error:', error);
+            return 'Select date';
         }
     };
 
+    const validateInput = (input: string | null, field: string) => {
+        if (input === null || input === '') {
+            return `${field} is required`;
+        }
+        const number = Number(input);
+        if (isNaN(number)) {
+            return `${field} must be a number`;
+        }
+        if (number <= 0) {
+            return `${field} must be greater than 0`;
+        }
+        return null;
+    };
+
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+
+        // Validate height
+        const heightError = validateInput(profile.height?.toString(), 'Height');
+        if (heightError) newErrors.height = heightError;
+
+        // Validate current weight
+        const currentWeightError = validateInput(profile.currentWeight?.toString(), 'Current weight');
+        if (currentWeightError) newErrors.currentWeight = currentWeightError;
+
+        // Validate target weight
+        const targetWeightError = validateInput(profile.targetWeight?.toString(), 'Target weight');
+        if (targetWeightError) newErrors.targetWeight = targetWeightError;
+
+        // Validate date fields
+        if (!isValidDate(new Date(profile.birthday))) {
+            newErrors.birthday = 'Invalid birthday';
+        }
+
+        if (!isValidDate(new Date(profile.target_time))) {
+            newErrors.target_time = 'Invalid target date';
+        }
+
+        // Additional validation
+        const currentDate = new Date();
+        const birthday = new Date(profile.birthday);
+        const targetDate = new Date(profile.target_time);
+
+        if (birthday >= currentDate) {
+            newErrors.birthday = 'Birthday cannot be in the future';
+        }
+
+        if (targetDate <= currentDate) {
+            newErrors.target_time = 'Target date must be in the future';
+        }
+
+        // Validate reasonable ranges
+        const height = Number(profile.height);
+        if (height && (height < 100 || height > 250)) {
+            newErrors.height = 'Height should be between 100cm and 250cm';
+        }
+
+        const weight = Number(profile.targetWeight);
+        if (weight !== null && profile.currentWeight) {
+            const minWeight = profile.currentWeight * 0.5;
+            const maxWeight = profile.currentWeight * 1.5;
+            if (weight < minWeight || weight > maxWeight) {
+                newErrors.targetWeight = 'Target weight should be within ±50% of current weight';
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSave = async () => {
-        if (!profile) return;
+        if (!validate()) {
+            return;
+        }
 
         try {
             setIsLoading(true);
             await updateProfile(profile);
+            Alert.alert('Success', 'Profile updated successfully');
             router.back();
-        } catch (error) {
-            console.error('Error saving profile:', error);
-            Alert.alert('Lỗi', 'Không thể lưu hồ sơ. Vui lòng thử lại sau.');
+        } catch (err) {
+            console.error('[EditProfile] Save Error:', err);
+            Alert.alert('Error', 'Failed to update profile');
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (isLoading || !profile) {
+    if (isInitialLoading) {
         return (
             <ThemedView style={[styles.container, styles.centered]}>
                 <ActivityIndicator size="large" color="#163166" />
+                <ThemedText style={styles.loadingText}>Loading profile...</ThemedText>
             </ThemedView>
         );
     }
 
-    const formatDisplayDate = (date: string) => {
-        try {
-            if (!isValidDate(date)) return 'Chọn ngày';
-            return format(new Date(date), 'dd/MM/yyyy');
-        } catch (error) {
-            return 'Chọn ngày';
-        }
-    };
-
-    const handleHeightChange = (text: string) => {
-        const height = parseFloat(text);
-        if (!isNaN(height) && height >= 0) {
-            setProfile({ ...profile, height });
-        }
-    };
-
-    const handleCurrentWeightChange = (text: string) => {
-        const weight = parseFloat(text);
-        if (!isNaN(weight) && weight >= 0) {
-            setProfile({ ...profile, currentWeight: weight });
-        }
-    };
-
-    const handleTargetWeightChange = (text: string) => {
-        const weight = parseFloat(text);
-        if (!isNaN(weight) && weight >= 0) {
-            setProfile({ ...profile, targetWeight: weight });
-        }
-    };
+    if (loadError) {
+        return (
+            <ThemedView style={[styles.container, styles.centered]}>
+                <ThemedText style={styles.errorMessage}>{loadError}</ThemedText>
+                <TouchableOpacity style={styles.retryButton} onPress={loadProfile}>
+                    <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        );
+    }
 
     return (
         <ThemedView style={styles.container}>
@@ -121,7 +204,9 @@ export default function EditProfileScreen() {
                     style={[styles.saveButton, isLoading && styles.saveButtonDisabled]}
                     disabled={isLoading}
                 >
-                    <ThemedText style={styles.saveButtonText}>Lưu</ThemedText>
+                    <ThemedText style={styles.saveButtonText}>
+                        {isLoading ? 'Đang lưu...' : 'Lưu'}
+                    </ThemedText>
                 </TouchableOpacity>
             </View>
 
@@ -133,7 +218,7 @@ export default function EditProfileScreen() {
                         <ThemedText style={styles.label}>Giới tính</ThemedText>
                         <Picker
                             selectedValue={profile.gender}
-                            onValueChange={(value) => setProfile({ ...profile, gender: value as Gender })}
+                            onValueChange={(value) => setProfile(prev => ({ ...prev, gender: value as Gender }))}
                             style={styles.picker}
                         >
                             <Picker.Item label="Nam" value="Male" />
@@ -144,135 +229,99 @@ export default function EditProfileScreen() {
                     <View style={styles.inputGroup}>
                         <ThemedText style={styles.label}>Ngày sinh</ThemedText>
                         <TouchableOpacity
-                            style={styles.dateInput}
+                            style={[styles.dateInput, errors.birthday && styles.inputError]}
                             onPress={() => setShowBirthdayPicker(true)}
                         >
                             <ThemedText>{formatDisplayDate(profile.birthday)}</ThemedText>
                         </TouchableOpacity>
-                        {showBirthdayPicker && Platform.OS === 'android' && (
+                        {errors.birthday && <ThemedText style={styles.errorText}>{errors.birthday}</ThemedText>}
+                        {showBirthdayPicker && (
                             <DateTimePicker
-                                value={isValidDate(profile.birthday) ? new Date(profile.birthday) : new Date()}
+                                value={new Date(profile.birthday)}
                                 mode="date"
                                 onChange={(event, date) => {
                                     setShowBirthdayPicker(false);
                                     if (date && event.type !== 'dismissed') {
-                                        setProfile({ ...profile, birthday: date.toISOString() });
+                                        setProfile(prev => ({ ...prev, birthday: date.toISOString() }));
                                     }
                                 }}
                             />
-                        )}
-                        {Platform.OS === 'ios' && showBirthdayPicker && (
-                            <View style={styles.datePickerContainer}>
-                                <View style={styles.datePickerHeader}>
-                                    <TouchableOpacity onPress={() => setShowBirthdayPicker(false)}>
-                                        <ThemedText style={styles.datePickerCancel}>Hủy</ThemedText>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setShowBirthdayPicker(false)}>
-                                        <ThemedText style={styles.datePickerDone}>Xong</ThemedText>
-                                    </TouchableOpacity>
-                                </View>
-                                <DateTimePicker
-                                    value={isValidDate(profile.birthday) ? new Date(profile.birthday) : new Date()}
-                                    mode="date"
-                                    display="spinner"
-                                    onChange={(event, date) => {
-                                        if (date) {
-                                            setProfile({ ...profile, birthday: date.toISOString() });
-                                        }
-                                    }}
-                                />
-                            </View>
                         )}
                     </View>
 
                     <View style={styles.inputGroup}>
                         <ThemedText style={styles.label}>Chiều cao (cm)</ThemedText>
                         <TextInput
-                            style={styles.input}
-                            value={(profile.height || 0).toString()}
-                            onChangeText={handleHeightChange}
+                            style={[styles.input, errors.height && styles.inputError]}
+                            value={profile.height?.toString() || ''}
+                            onChangeText={(value) => setProfile(prev => ({ ...prev, height: value ? Number(value) : null }))}
                             keyboardType="numeric"
-                            placeholder="0"
+                            placeholder="VD: 170"
                         />
+                        {errors.height && <ThemedText style={styles.errorText}>{errors.height}</ThemedText>}
                     </View>
                 </View>
 
                 <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Mục tiêu</ThemedText>
+                    <ThemedText style={styles.sectionTitle}>Cân nặng & Mục tiêu</ThemedText>
 
                     <View style={styles.inputGroup}>
                         <ThemedText style={styles.label}>Cân nặng hiện tại (kg)</ThemedText>
                         <TextInput
-                            style={styles.input}
-                            value={(profile.currentWeight || 0).toString()}
-                            onChangeText={handleCurrentWeightChange}
+                            style={[styles.input, errors.currentWeight && styles.inputError]}
+                            value={profile.currentWeight?.toString() || ''}
+                            onChangeText={(value) => setProfile(prev => ({ ...prev, currentWeight: value ? Number(value) : null }))}
                             keyboardType="numeric"
-                            placeholder="0"
+                            placeholder="VD: 65"
                         />
+                        {errors.currentWeight && <ThemedText style={styles.errorText}>{errors.currentWeight}</ThemedText>}
                     </View>
 
                     <View style={styles.inputGroup}>
                         <ThemedText style={styles.label}>Cân nặng mong muốn (kg)</ThemedText>
                         <TextInput
-                            style={styles.input}
-                            value={(profile.targetWeight || 0).toString()}
-                            onChangeText={handleTargetWeightChange}
+                            style={[styles.input, errors.targetWeight && styles.inputError]}
+                            value={profile.targetWeight?.toString() || ''}
+                            onChangeText={(value) => setProfile(prev => ({ ...prev, targetWeight: value ? Number(value) : null }))}
                             keyboardType="numeric"
-                            placeholder="0"
+                            placeholder="VD: 60"
                         />
+                        {errors.targetWeight && <ThemedText style={styles.errorText}>{errors.targetWeight}</ThemedText>}
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <ThemedText style={styles.label}>Thời gian mong muốn đạt được</ThemedText>
+                        <ThemedText style={styles.label}>Thời gian để đạt mục tiêu</ThemedText>
                         <TouchableOpacity
-                            style={styles.dateInput}
+                            style={[styles.dateInput, errors.target_time && styles.inputError]}
                             onPress={() => setShowTargetDatePicker(true)}
                         >
                             <ThemedText>{formatDisplayDate(profile.target_time)}</ThemedText>
                         </TouchableOpacity>
-                        {showTargetDatePicker && Platform.OS === 'android' && (
+                        {errors.target_time && <ThemedText style={styles.errorText}>{errors.target_time}</ThemedText>}
+                        {showTargetDatePicker && (
                             <DateTimePicker
-                                value={isValidDate(profile.target_time) ? new Date(profile.target_time) : new Date()}
+                                value={new Date(profile.target_time)}
                                 mode="date"
                                 minimumDate={new Date()}
                                 onChange={(event, date) => {
                                     setShowTargetDatePicker(false);
                                     if (date && event.type !== 'dismissed') {
-                                        setProfile({ ...profile, target_time: date.toISOString() });
+                                        setProfile(prev => ({ ...prev, target_time: date.toISOString() }));
                                     }
                                 }}
                             />
                         )}
-                        {Platform.OS === 'ios' && showTargetDatePicker && (
-                            <View style={styles.datePickerContainer}>
-                                <View style={styles.datePickerHeader}>
-                                    <TouchableOpacity onPress={() => setShowTargetDatePicker(false)}>
-                                        <ThemedText style={styles.datePickerCancel}>Hủy</ThemedText>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setShowTargetDatePicker(false)}>
-                                        <ThemedText style={styles.datePickerDone}>Xong</ThemedText>
-                                    </TouchableOpacity>
-                                </View>
-                                <DateTimePicker
-                                    value={isValidDate(profile.target_time) ? new Date(profile.target_time) : new Date()}
-                                    mode="date"
-                                    display="spinner"
-                                    minimumDate={new Date()}
-                                    onChange={(event, date) => {
-                                        if (date) {
-                                            setProfile({ ...profile, target_time: date.toISOString() });
-                                        }
-                                    }}
-                                />
-                            </View>
-                        )}
                     </View>
+                </View>
+
+                <View style={styles.section}>
+                    <ThemedText style={styles.sectionTitle}>Hoạt động & Mục tiêu</ThemedText>
 
                     <View style={styles.inputGroup}>
                         <ThemedText style={styles.label}>Mức độ vận động</ThemedText>
                         <Picker
                             selectedValue={profile.activityLevel}
-                            onValueChange={(value) => setProfile({ ...profile, activityLevel: value as ActivityLevel })}
+                            onValueChange={(value) => setProfile(prev => ({ ...prev, activityLevel: value as ActivityLevel }))}
                             style={styles.picker}
                         >
                             <Picker.Item label="Ít vận động" value="Sedentary" />
@@ -287,7 +336,7 @@ export default function EditProfileScreen() {
                         <ThemedText style={styles.label}>Mục tiêu</ThemedText>
                         <Picker
                             selectedValue={profile.goal}
-                            onValueChange={(value) => setProfile({ ...profile, goal: value as WeightGoal })}
+                            onValueChange={(value) => setProfile(prev => ({ ...prev, goal: value as WeightGoal }))}
                             style={styles.picker}
                         >
                             <Picker.Item label="Giảm cân" value="Lose weight" />
@@ -304,7 +353,7 @@ export default function EditProfileScreen() {
                         <ThemedText style={styles.label}>Loại chế độ ăn</ThemedText>
                         <Picker
                             selectedValue={profile.dietType}
-                            onValueChange={(value) => setProfile({ ...profile, dietType: value as DietType })}
+                            onValueChange={(value) => setProfile(prev => ({ ...prev, dietType: value as DietType }))}
                             style={styles.picker}
                         >
                             <Picker.Item label="Cân bằng" value="Balanced" />
@@ -331,26 +380,6 @@ const styles = StyleSheet.create({
     centered: {
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    datePickerContainer: {
-        backgroundColor: '#fff',
-        paddingVertical: 20,
-    },
-    datePickerHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomColor: '#E1E4E8',
-    },
-    datePickerCancel: {
-        color: '#666',
-        fontSize: 16,
-    },
-    datePickerDone: {
-        color: '#163166',
-        fontSize: 16,
-        fontWeight: '600',
     },
     header: {
         flexDirection: 'row',
@@ -423,5 +452,38 @@ const styles = StyleSheet.create({
     picker: {
         borderColor: '#E1E4E8',
         borderRadius: 8,
+    },
+    inputError: {
+        borderColor: '#FF4D4F',
+        borderWidth: 1,
+    },
+    errorText: {
+        color: '#FF4D4F',
+        fontSize: 12,
+        marginTop: 4,
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#666',
+        marginVertical: 16,
+    },
+    errorMessage: {
+        fontSize: 16,
+        color: '#FF4D4F',
+        marginVertical: 16,
+        textAlign: 'center',
+        paddingHorizontal: 32,
+    },
+    retryButton: {
+        backgroundColor: '#163166',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+        marginVertical: 16,
+    },
+    retryButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

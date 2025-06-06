@@ -42,8 +42,7 @@ export default function TabLayout() {
           title: 'Report',
           headerShown: false,
           tabBarIcon: ({ color }) => <MaterialIcons size={28} name="assessment" color={color} />,
-        }}
-      />      <Tabs.Screen
+        }} />      <Tabs.Screen
         name="food-history/index"
         options={{
           title: 'Settings',

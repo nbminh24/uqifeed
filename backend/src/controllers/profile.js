@@ -112,7 +112,7 @@ const ProfileController = {
                 height,
                 currentWeight,
                 targetWeight,
-                targetTime,
+                target_time, // Changed from targetTime
                 activityLevel,
                 goal,
                 dietType
@@ -129,18 +129,20 @@ const ProfileController = {
                 );
             }
 
-            // Update profile data
+            // Update profile data with careful handling of fields
             const profileData = {
-                gender: gender || profile.gender,
-                birthday: birthday || profile.birthday,
-                height: height ? parseFloat(height) : profile.height,
-                currentWeight: currentWeight ? parseFloat(currentWeight) : profile.currentWeight,
-                targetWeight: targetWeight ? parseFloat(targetWeight) : profile.targetWeight,
-                targetTime: targetTime || profile.targetTime,
-                activityLevel: activityLevel || profile.activityLevel,
-                goal: goal || profile.goal,
-                dietType: dietType || profile.dietType
+                gender: gender ?? profile.gender,
+                birthday: birthday ?? profile.birthday,
+                height: height !== undefined ? parseFloat(height) : profile.height,
+                currentWeight: currentWeight !== undefined ? parseFloat(currentWeight) : profile.currentWeight,
+                targetWeight: targetWeight !== undefined ? parseFloat(targetWeight) : profile.targetWeight,
+                target_time: target_time ?? profile.target_time, // Changed from targetTime
+                activityLevel: activityLevel ?? profile.activityLevel,
+                goal: goal ?? profile.goal,
+                dietType: dietType ?? profile.dietType
             };
+
+            console.log('Updating profile with data:', profileData); // Debug log
 
             const updatedProfile = await Profile.update(profile.id, profileData);
 

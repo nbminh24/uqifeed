@@ -37,3 +37,17 @@ export interface Profile {
     createdAt?: string;
     updatedAt?: string;
 }
+
+export interface ProfileCreateInput {
+    gender: Gender;
+    birthday: string;
+    height?: number | null;
+    currentWeight?: number | null;
+    targetWeight?: number | null;
+    target_time: string;
+    activityLevel: ActivityLevel;
+    goal: WeightGoal;
+    dietType: DietType;
+}
+
+export interface ProfileUpdateInput extends Partial<ProfileCreateInput> { }

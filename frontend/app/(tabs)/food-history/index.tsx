@@ -33,8 +33,8 @@ export default function SettingsScreen() {
                 <View style={styles.section}>
                     <ThemedText style={styles.sectionTitle}>Account</ThemedText>                    <SettingItem
                         icon="person-outline"
-                        title="Hồ sơ dinh dưỡng"
-                        onPress={() => router.push('/food-history/edit-profile')}
+                        title="Edit Profile"
+                        onPress={() => router.push('/edit-profile')}
                     />
                     <SettingItem
                         icon="notifications-outline"
