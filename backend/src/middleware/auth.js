@@ -1,21 +1,64 @@
 const jwt = require('jsonwebtoken');
 const { admin } = require('../config/firebase');
 
+// Mock user for development
+const DEFAULT_USER = {
+    id: 'nR3t7mJhxhIdQvTqSIqX', // Admin user ID
+    role: 'admin'
+};
+
 /**
  * Authentication Middleware
  * Verifies the JWT token from the user and attaches the user data to the request object
  */
 exports.authenticate = async (req, res, next) => {
-    // Always set mock user for development/testing
-    req.user = {
-        id: 'nR3t7mJhxhIdQvTqSIqX',
-        email: 'admin@gmail.com',
-        username: 'admin',
-        role: 'admin',
-        createdAt: '2025-05-23T05:51:57.402Z',
-        updatedAt: '2025-05-23T05:51:57.402Z'
-    };
-    next();
+    try {
+        let token;
+
+        // Get token from Authorization header
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+
+        // No token found
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập'
+            });
+        }
+
+        // For development, accept default token
+        if (token === 'default-auth-token-123' && process.env.NODE_ENV !== 'production') {
+            req.user = DEFAULT_USER;
+            return next();
+        }
+
+        try {
+            // Verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Attach user info to request
+            req.user = {
+                id: decoded.id,
+                role: decoded.role
+            };
+
+            next();
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return res.status(401).json({
+                success: false,
+                message: 'Phiên đăng nhập đã hết hạn'
+            });
+        }
+    } catch (error) {
+        console.error('Authentication error:', error);
+        return res.status(401).json({
+            success: false,
+            message: 'Phiên đăng nhập đã hết hạn'
+        });
+    }
 }
 
 /**

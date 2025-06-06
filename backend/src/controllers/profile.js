@@ -13,13 +13,14 @@ const ProfileController = {
      */
     createProfile: async (req, res) => {
         try {
+            console.log('[Profile Controller] Create request body:', req.body);
             const {
                 gender,
                 birthday,
                 height,
                 currentWeight,
                 targetWeight,
-                targetTime,
+                target_time,  // Changed from targetTime to target_time
                 activityLevel,
                 goal,
                 dietType
@@ -43,12 +44,13 @@ const ProfileController = {
                 height: parseFloat(height),
                 currentWeight: parseFloat(currentWeight),
                 targetWeight: parseFloat(targetWeight),
-                targetTime,
+                target_time,  // Changed from targetTime to target_time
                 activityLevel,
                 goal,
                 dietType
             };
 
+            console.log('[Profile Controller] Creating profile with data:', profileData);
             const profile = await Profile.create(profileData);
 
             return sendSuccessResponse(
@@ -58,7 +60,7 @@ const ProfileController = {
                 201
             );
         } catch (error) {
-            console.error('Create profile error:', error);
+            console.error('[Profile Controller] Create error:', error);
             return sendErrorResponse(
                 res,
                 error.message || 'Error creating profile',
@@ -106,58 +108,47 @@ const ProfileController = {
      */
     updateProfile: async (req, res) => {
         try {
+            console.log('[Profile Controller] Update request body:', req.body);
+
+            // Check if profile exists
+            const profile = await Profile.findByUserId(req.user.id);
+            if (!profile) {
+                return sendErrorResponse(res, 'Profile not found', 404);
+            }
+
+            // Validation is handled by express-validator middleware
             const {
                 gender,
                 birthday,
                 height,
                 currentWeight,
                 targetWeight,
-                target_time, // Changed from targetTime
+                target_time,
                 activityLevel,
                 goal,
                 dietType
             } = req.body;
 
-            // Find user profile
-            const profile = await Profile.findByUserId(req.user.id);
-
-            if (!profile) {
-                return sendErrorResponse(
-                    res,
-                    'Profile not found',
-                    404
-                );
-            }
-
-            // Update profile data with careful handling of fields
             const profileData = {
                 gender: gender ?? profile.gender,
                 birthday: birthday ?? profile.birthday,
                 height: height !== undefined ? parseFloat(height) : profile.height,
                 currentWeight: currentWeight !== undefined ? parseFloat(currentWeight) : profile.currentWeight,
                 targetWeight: targetWeight !== undefined ? parseFloat(targetWeight) : profile.targetWeight,
-                target_time: target_time ?? profile.target_time, // Changed from targetTime
+                target_time: target_time ?? profile.target_time,
                 activityLevel: activityLevel ?? profile.activityLevel,
                 goal: goal ?? profile.goal,
                 dietType: dietType ?? profile.dietType
             };
 
-            console.log('Updating profile with data:', profileData); // Debug log
-
+            console.log('[Profile Controller] Update data:', profileData);
             const updatedProfile = await Profile.update(profile.id, profileData);
+            console.log('[Profile Controller] Updated profile:', updatedProfile);
 
-            return sendSuccessResponse(
-                res,
-                'Profile updated successfully',
-                { profile: updatedProfile }
-            );
+            return sendSuccessResponse(res, 'Profile updated successfully', { profile: updatedProfile });
         } catch (error) {
-            console.error('Update profile error:', error);
-            return sendErrorResponse(
-                res,
-                error.message || 'Error updating profile',
-                500
-            );
+            console.error('[Profile Controller] Update error:', error);
+            return sendErrorResponse(res, error.message || 'Error updating profile', 500);
         }
     },
 

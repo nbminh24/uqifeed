@@ -6,12 +6,14 @@ import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LogBox } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { setupNetworkLogging } from '@/utils/networkLogger';
 
-// Ignore specific warning
 LogBox.ignoreLogs(['Text strings must be rendered within a <Text> component']);
+
+const DEFAULT_TOKEN = 'default-auth-token-123'; // Default token for testing
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -23,21 +25,26 @@ export default function RootLayout() {
     if (__DEV__) {
       setupNetworkLogging();
     }
+    // Set default token on app start
+    AsyncStorage.setItem('token', DEFAULT_TOKEN);
   }, []);
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
-  } return (
+  }
+
+  return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{
-          headerShown: false,
-          headerStyle: {
-            backgroundColor: '#163166',
-          },
-          headerTintColor: '#fff',
-        }} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            headerStyle: {
+              backgroundColor: '#163166',
+            },
+            headerTintColor: '#fff',
+          }}
+        />
         <StatusBar style="auto" />
       </ThemeProvider>
     </SafeAreaProvider>

@@ -1,7 +1,14 @@
 import { Profile, ProfileUpdateInput } from '@/types/profile';
+import { ApiResponse } from '@/types/common';
 import { API_URL } from '@/constants/Config';
-import { sanitizeDate } from './dateUtils';
+import { sanitizeDate, isValidDate } from './dateUtils';
+import { validateProfile } from '@/utils/validation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const DEFAULT_TOKEN = 'default-auth-token-123';
+
+// Add request deduplication
+let currentProfileRequest: Promise<Profile> | null = null;
 
 const parseNumericField = (value: any): number | null => {
     if (value === null || value === undefined) return null;
@@ -9,104 +16,133 @@ const parseNumericField = (value: any): number | null => {
     return !isNaN(num) ? num : null;
 };
 
-const transformProfileData = (data: any): Profile => {
+const transformProfileData = (data: any): Profile => ({
+    id: data.id || '',
+    userId: data.userId || '',
+    gender: data.gender || 'Male',
+    birthday: sanitizeDate(data.birthday),
+    height: parseNumericField(data.height),
+    currentWeight: parseNumericField(data.currentWeight),
+    targetWeight: parseNumericField(data.targetWeight),
+    target_time: sanitizeDate(data.target_time),
+    activityLevel: data.activityLevel || 'Moderately active',
+    goal: data.goal || 'Maintain weight',
+    dietType: data.dietType || 'Balanced',
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt
+});
+
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
     return {
-        id: data.id || '',
-        userId: data.userId || '',
-        gender: data.gender || 'Male',
-        birthday: sanitizeDate(data.birthday) || new Date().toISOString(),
-        height: parseNumericField(data.height),
-        currentWeight: parseNumericField(data.currentWeight),
-        targetWeight: parseNumericField(data.targetWeight),
-        target_time: sanitizeDate(data.target_time) || new Date().toISOString(),
-        activityLevel: data.activityLevel || 'Moderately active',
-        goal: data.goal || 'Maintain weight',
-        dietType: data.dietType || 'Balanced',
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEFAULT_TOKEN}`,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
     };
 };
 
+const handleResponseError = async (response: Response): Promise<never> => {
+    const data = await response.json();
+    if (response.status === 401 || response.status === 403) {
+        // Token might be invalid, for development just log out
+        console.warn('Auth error occurred, using default token');
+    }
+    throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
+};
+
 export const getProfile = async (): Promise<Profile> => {
+    // Return existing request if one is in progress
+    if (currentProfileRequest) {
+        return currentProfileRequest;
+    }
+
     try {
-        // Lấy token xác thực
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-            console.warn('No token found, proceeding without authentication');
-        }
+        currentProfileRequest = (async () => {
+            const headers = await getAuthHeaders();
+            const response = await fetch(`${API_URL}/api/profiles/me`, { headers });
 
-        const headers: Record<string, string> = {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const response = await fetch(`${API_URL}/api/profiles/me`, {
-            headers,
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error('Unauthorized - Invalid token');
+            if (!response.ok) {
+                await handleResponseError(response);
             }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Failed to get profile');
-        }
+            const data: ApiResponse<{ profile: any }> = await response.json();
 
-        return transformProfileData(data.data.profile);
-    } catch (error) {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to get profile');
+            }
+
+            return transformProfileData(data.data.profile);
+        })();
+
+        const result = await currentProfileRequest;
+        currentProfileRequest = null;
+        return result;
+    } catch (error: any) {
+        currentProfileRequest = null;
         console.error('Error fetching profile:', error);
-        throw error;
+        throw new Error(error.message || 'Không thể tải thông tin. Vui lòng thử lại.');
     }
 };
 
 export const updateProfile = async (profile: ProfileUpdateInput): Promise<Profile> => {
     try {
-        // Lấy token xác thực
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-            console.warn('No token found, proceeding without authentication');
+        const errors = validateProfile(profile as Profile);
+        if (Object.keys(errors).length > 0) {
+            throw new Error(Object.values(errors)[0]);
         }
 
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
+        // Ensure dates are valid and in ISO format
+        let formattedBirthday: string;
+        let formattedTargetTime: string;
 
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        try {
+            const birthday = new Date(profile.birthday);
+            formattedBirthday = birthday.toISOString();
+
+            const targetTime = new Date(profile.target_time);
+            if (isNaN(targetTime.getTime())) {
+                throw new Error('Invalid target date');
+            }
+            formattedTargetTime = targetTime.toISOString();
+        } catch (error) {
+            console.error('[ProfileService] Date formatting error:', error);
+            throw new Error('Invalid date format');
         }
 
-        // Sanitize dates and numeric values before sending to server
+        const headers = await getAuthHeaders();
         const sanitizedProfile = {
-            ...profile,
-            birthday: profile.birthday ? sanitizeDate(profile.birthday) : undefined,
-            target_time: profile.target_time ? sanitizeDate(profile.target_time) : undefined,
-            height: profile.height !== undefined ? parseNumericField(profile.height) : undefined,
-            currentWeight: profile.currentWeight !== undefined ? parseNumericField(profile.currentWeight) : undefined,
-            targetWeight: profile.targetWeight !== undefined ? parseNumericField(profile.targetWeight) : undefined,
+            gender: profile.gender,
+            birthday: formattedBirthday,
+            height: parseNumericField(profile.height),
+            currentWeight: parseNumericField(profile.currentWeight),
+            targetWeight: parseNumericField(profile.targetWeight),
+            target_time: formattedTargetTime,
+            activityLevel: profile.activityLevel,
+            goal: profile.goal,
+            dietType: profile.dietType
         };
+
+        console.log('[ProfileService] Sending update request with data:', JSON.stringify(sanitizedProfile, null, 2));
 
         const response = await fetch(`${API_URL}/api/profiles/me`, {
             method: 'PUT',
             headers,
-            body: JSON.stringify(sanitizedProfile),
+            body: JSON.stringify(sanitizedProfile)
         });
 
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Failed to update profile');
+        if (!response.ok) {
+            console.error('[ProfileService] Update failed with status:', response.status);
+            const errorData = await response.json();
+            console.error('[ProfileService] Error response:', JSON.stringify(errorData, null, 2));
+            throw new Error(errorData.errors?.[0]?.message || `Error ${response.status}: ${response.statusText}`);
         }
 
+        const data: ApiResponse<{ profile: any }> = await response.json();
+        console.log('[ProfileService] Update successful. Response:', JSON.stringify(data, null, 2));
+
         return transformProfileData(data.data.profile);
-    } catch (error) {
-        console.error('Error updating profile:', error);
-        throw error;
+    } catch (error: any) {
+        console.error('[ProfileService] Error updating profile:', error);
+        throw new Error(error.message || 'Không thể cập nhật thông tin. Vui lòng thử lại.');
     }
 };
