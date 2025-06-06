@@ -19,9 +19,12 @@ app.use(helmet()); // Security headers
 app.use(morgan('dev')); // Logging
 app.use(cors({
     origin: ['http://localhost:19000', 'http://localhost:19006', 'http://10.0.2.2:19000',
-        'exp://localhost:19000', 'http://10.0.0.233:19000', 'exp://10.0.0.233:19000'],
+        'exp://localhost:19000', 'http://10.0.0.233:19000', 'exp://10.0.0.233:19000',
+        'http://10.0.136.13:19000', 'exp://10.0.136.13:19000'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    exposedHeaders: ['ETag'],
+    maxAge: 0
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));

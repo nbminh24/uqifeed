@@ -9,6 +9,51 @@ const profilesCollection = db.collection('profiles');
  */
 class Profile {
     /**
+     * Format profile data to ensure dates are in ISO format
+     * @param {Object} profile - Profile data to format
+     * @returns {Object} Formatted profile data
+     */    static formatProfileData(profile) {
+        if (!profile) return null;
+
+        // Ensure dates are in ISO format
+        const formatted = { ...profile };
+
+        // Handle birthday
+        if (formatted.birthday) {
+            try {
+                const birthdayDate = new Date(formatted.birthday);
+                if (!isNaN(birthdayDate.getTime())) {
+                    formatted.birthday = birthdayDate.toISOString();
+                } else {
+                    console.error('Invalid birthday date');
+                    formatted.birthday = new Date().toISOString();
+                }
+            } catch (e) {
+                console.error('Error formatting birthday:', e);
+                formatted.birthday = new Date().toISOString();
+            }
+        }
+
+        // Handle target_time
+        if (formatted.target_time) {
+            try {
+                const targetDate = new Date(formatted.target_time);
+                if (!isNaN(targetDate.getTime())) {
+                    formatted.target_time = targetDate.toISOString();
+                } else {
+                    console.error('Invalid target_time date');
+                    formatted.target_time = new Date().toISOString();
+                }
+            } catch (e) {
+                console.error('Error formatting target_time:', e);
+                formatted.target_time = new Date().toISOString();
+            }
+        }
+
+        return formatted;
+    }
+
+    /**
      * Create a new profile
      * @param {Object} profileData - Profile data to create
      * @returns {Object} Created profile object
@@ -18,6 +63,9 @@ class Profile {
             // Add timestamp
             profileData.createdAt = new Date().toISOString();
             profileData.updatedAt = new Date().toISOString();
+
+            // Format dates
+            profileData = this.formatProfileData(profileData);
 
             // Check if user already has a profile
             const existingProfile = await this.findByUserId(profileData.userId);
@@ -30,7 +78,7 @@ class Profile {
 
             // Get the profile data with ID
             const profile = await profileRef.get();
-            return { id: profile.id, ...profile.data() };
+            return this.formatProfileData({ id: profile.id, ...profile.data() });
         } catch (error) {
             console.error('Error creating profile:', error);
             throw error;
@@ -50,7 +98,7 @@ class Profile {
                 return null;
             }
 
-            return { id: profileDoc.id, ...profileDoc.data() };
+            return this.formatProfileData({ id: profileDoc.id, ...profileDoc.data() });
         } catch (error) {
             console.error('Error finding profile by ID:', error);
             throw error;
@@ -72,7 +120,8 @@ class Profile {
 
             let profile = null;
             snapshot.forEach(doc => {
-                profile = { id: doc.id, ...doc.data() };
+                const data = doc.data();
+                profile = this.formatProfileData({ id: doc.id, ...data });
             });
 
             return profile;

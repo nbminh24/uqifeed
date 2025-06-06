@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity, ScrollView } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 interface SettingItemProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -30,11 +31,10 @@ export default function SettingsScreen() {
         <ThemedView style={styles.container}>
             <ScrollView style={styles.scrollView}>
                 <View style={styles.section}>
-                    <ThemedText style={styles.sectionTitle}>Account</ThemedText>
-                    <SettingItem
+                    <ThemedText style={styles.sectionTitle}>Account</ThemedText>                    <SettingItem
                         icon="person-outline"
-                        title="Profile"
-                        onPress={() => { }}
+                        title="Hồ sơ dinh dưỡng"
+                        onPress={() => router.push('/food-history/edit-profile')}
                     />
                     <SettingItem
                         icon="notifications-outline"
