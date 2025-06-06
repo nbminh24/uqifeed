@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity, Platform } from 'react-native';
+import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity, Platform, Alert, SafeAreaView } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -29,10 +29,52 @@ export default function FoodDetailsScreen() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [foodDetails, setFoodDetails] = useState<DetailedFoodResponse['data'] | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleEditPress = () => {
         if (id) {
-            router.push(`/food-edit?id=${id}`);
+            router.push({
+                pathname: '/food-edit',
+                params: { id }
+            });
+        }
+    };
+
+    const handleDeletePress = () => {
+        Alert.alert(
+            'Xác nhận xóa',
+            'Bạn có chắc chắn muốn xóa món ăn này không? Hành động này không thể hoàn tác.',
+            [
+                {
+                    text: 'Hủy',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Xóa',
+                    style: 'destructive',
+                    onPress: handleDelete
+                }
+            ]
+        );
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+
+        try {
+            setIsDeleting(true);
+            const response = await foodService.deleteFood(String(id));
+
+            if (response.success) {
+                router.replace("/(tabs)/");
+            } else {
+                Alert.alert('Lỗi', 'Không thể xóa món ăn. Vui lòng thử lại sau.');
+            }
+        } catch (err) {
+            console.error('[FoodDetails] Delete Error:', err);
+            Alert.alert('Lỗi', 'Không thể xóa món ăn. Vui lòng thử lại sau.');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -131,86 +173,144 @@ export default function FoodDetailsScreen() {
     });
 
     return (
-        <ThemedView style={styles.container}>            <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container}>
+            <ThemedView style={styles.container}>
+                <Stack.Screen options={{ headerShown: false }} />
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="arrow-back" size={24} color="#000" />
+                    </TouchableOpacity>
+                    <View style={styles.headerTitle}>
+                        <Text style={styles.foodName} numberOfLines={1}>
+                            {foodDetails?.food.food_name}
+                        </Text>
+                        <Text style={styles.timeText}>
+                            {foodDetails?.food.created_at ? new Date(foodDetails.food.created_at).toLocaleString() : ''}
+                        </Text>
+                    </View>
+                    <View style={styles.headerButtons}>
+                        <TouchableOpacity
+                            style={[styles.editButton, isDeleting && styles.disabledButton]}
+                            onPress={() => router.push({ pathname: '/food-edit', params: { id } })}
+                            disabled={isDeleting}
+                        >
+                            <Ionicons name="pencil" size={20} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.deleteButton, isDeleting && styles.disabledButton]}
+                            onPress={handleDeletePress}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Ionicons name="trash" size={20} color="#fff" />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#000" />
-                </TouchableOpacity>
-                <View style={styles.headerTitle}>
-                    <Text style={styles.foodName} numberOfLines={1}>
-                        {food.food_name}
-                    </Text>
-                    <Text style={styles.timeText}>
-                        {new Date(food.created_at).toLocaleString()}
-                    </Text>
-                </View>                <TouchableOpacity
-                    onPress={() => router.push({ pathname: '/food-edit', params: { id: id } })}
-                    style={styles.editButton}
-                >
-                    <Ionicons name="pencil" size={20} color="#fff" />
-                </TouchableOpacity>
-            </View>
-
-            <ScrollView>
-                <FoodImage
-                    imageUrl={food.food_image || (typeof food.food_description === 'string' ? "https://i.pinimg.com/736x/4b/df/13/4bdf13a13c23d9d873a9ed306ad5a6fa.jpg" : "https://mir-s3-cdn-cf.behance.net/projects/404/7db057114460205.Y3JvcCw5OTksNzgyLDAsMTA4.jpg")}>
-                    <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-                </FoodImage><CaloriesAndMacros
-                    calories={food.total_calorie || 0}
-                    protein={food.total_protein || 0}
-                    carbs={food.total_carb || 0}
-                    fats={food.total_fat || 0}
-                />
-                <IngredientsList ingredients={ingredients} />                {nutritionComments.sort((a, b) => {
-                    const order = {
-                        'calories': 1,
-                        'calorie': 1,
-                        'total_calorie': 1,
-                        'protein': 2,
-                        'proteins': 2,
-                        'total_protein': 2,
-                        'fat': 3,
-                        'fats': 3,
-                        'total_fat': 3,
-                        'carbs': 4,
-                        'carb': 4,
-                        'total_carb': 4,
-                        'fiber': 5,
-                        'total_fiber': 5
-                    };
-                    const orderA = order[a.nutrition_type.toLowerCase() as keyof typeof order] || 99;
-                    const orderB = order[b.nutrition_type.toLowerCase() as keyof typeof order] || 99;
-                    return orderA - orderB;
-                }).map((comment, index) => (
-                    <NutrientCard
-                        key={index}
-                        nutrient={comment} nutritionScore={nutritionScore}
-                        food={food}
-                        targetNutrition={targetNutrition}
-                        mealType={getMealTypeString(food.meal_type_id)}
+                <ScrollView>
+                    <FoodImage
+                        imageUrl={food.food_image || (typeof food.food_description === 'string' ? "https://i.pinimg.com/736x/4b/df/13/4bdf13a13c23d9d873a9ed306ad5a6fa.jpg" : "https://mir-s3-cdn-cf.behance.net/projects/404/7db057114460205.Y3JvcCw5OTksNzgyLDAsMTA4.jpg")}>
+                        <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
+                    </FoodImage><CaloriesAndMacros
+                        calories={food.total_calorie || 0}
+                        protein={food.total_protein || 0}
+                        carbs={food.total_carb || 0}
+                        fats={food.total_fat || 0}
                     />
-                ))}
-                <FoodDescriptionInfo food_description={food.food_description} />
-                <FoodAdvice food_advice={food.food_advice} />
-                <FoodPreparation food_preparation={food.food_preparation} />
-            </ScrollView>
-        </ThemedView>
+                    <IngredientsList ingredients={ingredients} />                {nutritionComments.sort((a, b) => {
+                        const order = {
+                            'calories': 1,
+                            'calorie': 1,
+                            'total_calorie': 1,
+                            'protein': 2,
+                            'proteins': 2,
+                            'total_protein': 2,
+                            'fat': 3,
+                            'fats': 3,
+                            'total_fat': 3,
+                            'carbs': 4,
+                            'carb': 4,
+                            'total_carb': 4,
+                            'fiber': 5,
+                            'total_fiber': 5
+                        };
+                        const orderA = order[a.nutrition_type.toLowerCase() as keyof typeof order] || 99;
+                        const orderB = order[b.nutrition_type.toLowerCase() as keyof typeof order] || 99;
+                        return orderA - orderB;
+                    }).map((comment, index) => (
+                        <NutrientCard
+                            key={index}
+                            nutrient={comment} nutritionScore={nutritionScore}
+                            food={food}
+                            targetNutrition={targetNutrition}
+                            mealType={getMealTypeString(food.meal_type_id)}
+                        />
+                    ))}
+                    <FoodDescriptionInfo food_description={food.food_description} />
+                    <FoodAdvice food_advice={food.food_advice} />
+                    <FoodPreparation food_preparation={food.food_preparation} />
+                </ScrollView>
+            </ThemedView>
+        </SafeAreaView>
     );
-}
+};
+
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F5F6FA',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E7EB',
+        paddingTop: Platform.OS === 'ios' ? 16 : 12,
+    },
+    headerTitle: {
+        flex: 1,
+        marginLeft: 12,
+    },
+    foodName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+        marginBottom: 4,
+    },
+    timeText: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        gap: 8,
+        marginLeft: 8,
+    },
     editButton: {
-        backgroundColor: '#163166',
-        width: 36,
-        height: 36,
+        backgroundColor: '#065BAA',
+        aspectRatio: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F6FA',
-        paddingTop: Platform.OS === 'ios' ? 48 : 32,
+    deleteButton: {
+        backgroundColor: '#DC3545',
+        aspectRatio: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    disabledButton: {
+        opacity: 0.5,
     },
     scrollView: {
         flex: 1,
@@ -601,13 +701,32 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
+    headerButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginStart: 8,
+        gap: 8,
+    },
     editButton: {
-        backgroundColor: '#163166',
-        width: 36,
-        height: 36,
+        backgroundColor: '#065BAA',
+        aspectRatio: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
         borderRadius: 18,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    deleteButton: {
+        backgroundColor: '#DC3545',
+        aspectRatio: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    disabledButton: {
+        opacity: 0.5,
     },
 });
 

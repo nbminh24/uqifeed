@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, FlatList, ActivityIndicator, View, Platform, Image } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { format, addDays, subDays, startOfDay } from 'date-fns';
+import { useFocusEffect } from '@react-navigation/native';
 import { FoodCard } from './FoodCard';
 import { WeekDayPicker } from './WeekDayPicker';
 import { ThemedView } from '../ThemedView';
@@ -67,6 +68,45 @@ export function FoodHistoryScreen({ mascotUri, mascotSize = 0 }: FoodHistoryScre
 
         fetchFoodHistory();
     }, [selectedDate]); // Only re-fetch when selected date changes
+
+    // Re-fetch data when the screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            console.log('Food History screen focused - refreshing data');
+            const fetchFoodHistory = async () => {
+                try {
+                    setIsLoading(true);
+
+                    // Get date string for the selected date
+                    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+
+                    // Check if we already have data for this date to avoid unnecessary fetches
+                    if (foodsByDate[selectedDateStr] !== undefined) {
+                        console.log(`Already have data for ${selectedDateStr}, skipping fetch`);
+                        setIsLoading(false);
+                        return;
+                    }
+
+                    console.log(`Fetching data for ${selectedDateStr}`);
+
+                    // Only fetch for the selected date to optimize performance
+                    const response = await getFoodHistory(selectedDateStr, selectedDateStr);
+
+                    // Merge new data with existing data
+                    setFoodsByDate(prev => ({
+                        ...prev,
+                        ...response
+                    }));
+                } catch (error) {
+                    console.error('Error fetching food history:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchFoodHistory();
+        }, [selectedDate])
+    );
 
     const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
     const foodsForSelectedDate = foodsByDate[selectedDateStr] || [];    // Format date for header
