@@ -1,8 +1,10 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { HapticTab } from '@/components/HapticTab';
+import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -10,30 +12,36 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = colorScheme ?? 'light';
+  const tintColor = Colors[theme].tint;
+  const inactiveTintColor = Colors[theme].tabIconDefault;
+
+  const tabBarStyle: ViewStyle = {
+    height: 65,
+    backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)',
+    borderTopWidth: 0,
+    ...(Platform.OS === 'ios' ? {
+      position: 'absolute',
+      bottom: 20,
+      left: 0,
+      right: 0,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 8,
+    } : {
+      elevation: 8,
+    })
+  };
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[theme].tint,
-        tabBarInactiveTintColor: Colors[theme].tabIconDefault,
+        tabBarActiveTintColor: tintColor,
+        tabBarInactiveTintColor: inactiveTintColor,
         headerShown: false,
-        tabBarStyle: {
-          height: 65,
-          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
-          borderTopWidth: 0,
-          ...(Platform.OS === 'ios' ? {
-            position: 'absolute',
-            bottom: 20,
-            left: 0,
-            right: 0,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.12,
-            shadowRadius: 8,
-          } : {
-            elevation: 8,
-          })
-        },
+        tabBarBackground: () => <TabBarBackground />,
+        tabBarButton: props => <HapticTab {...props} />,
+        tabBarStyle,
         tabBarItemStyle: {
           height: 65,
           paddingBottom: 8,
@@ -50,7 +58,7 @@ export default function TabLayout() {
           title: 'Home',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
+            <Ionicons 
               name={focused ? "home" : "home-outline"}
               size={24}
               color={color}
@@ -65,7 +73,7 @@ export default function TabLayout() {
           title: 'Report',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
+            <Ionicons 
               name={focused ? "stats-chart" : "stats-chart-outline"}
               size={24}
               color={color}
@@ -73,15 +81,16 @@ export default function TabLayout() {
             />
           ),
         }}
-      />      <Tabs.Screen
+      />
+      <Tabs.Screen
         name="food-history/index"
         options={{
-          title: 'Settings',
+          title: 'History',
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? "settings" : "settings-outline"}
-              size={24}
+            <Ionicons 
+              name={focused ? "time" : "time-outline"}
+              size={24} 
               color={color}
               style={styles.icon}
             />

@@ -1,4 +1,6 @@
 const Profile = require('../models/profile');
+const TargetNutrition = require('../models/targetNutrition');
+const NutritionCalculator = require('../services/nutritionCalculator');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
 
 /**
@@ -139,13 +141,44 @@ const ProfileController = {
                 activityLevel: activityLevel ?? profile.activityLevel,
                 goal: goal ?? profile.goal,
                 dietType: dietType ?? profile.dietType
-            };
-
-            console.log('[Profile Controller] Update data:', profileData);
+            }; console.log('[Profile Controller] Update data:', profileData);
             const updatedProfile = await Profile.update(profile.id, profileData);
-            console.log('[Profile Controller] Updated profile:', updatedProfile);
+            console.log('[Profile Controller] Updated profile:', updatedProfile);            // Calculate and update nutrition targets based on updated profile
+            console.log('[Profile Controller] Calculating nutrition targets for updated profile:', updatedProfile);
+            const nutritionTargets = NutritionCalculator.calculateNutritionTargets(updatedProfile);
+            console.log('[Profile Controller] Calculated nutrition targets:', nutritionTargets);
 
-            return sendSuccessResponse(res, 'Profile updated successfully', { profile: updatedProfile });
+            try {
+                const existingNutrition = await TargetNutrition.findByUserId(req.user.id);
+                const nutritionData = {
+                    userId: req.user.id,
+                    profileId: updatedProfile.id,
+                    daily: nutritionTargets.daily,
+                    meals: nutritionTargets.meals,
+                    calculations: nutritionTargets.calculations
+                };
+                console.log('[Profile Controller] Nutrition data to save:', nutritionData);
+
+                let savedNutrition;
+                if (existingNutrition) {
+                    console.log('[Profile Controller] Updating existing target nutrition:', existingNutrition.id);
+                    savedNutrition = await TargetNutrition.update(existingNutrition.id, nutritionData);
+                } else {
+                    console.log('[Profile Controller] Creating new target nutrition');
+                    savedNutrition = await TargetNutrition.create(nutritionData);
+                }
+                console.log('[Profile Controller] Successfully saved target nutrition:', savedNutrition);
+            } catch (error) {
+                console.error('[Profile Controller] Error saving target nutrition:', error);
+                // Still send success response since profile was updated
+                return sendSuccessResponse(res, 'Profile updated successfully but failed to update nutrition targets. Please recalculate your nutrition targets.', { profile: updatedProfile });
+            }
+
+            console.log('[Profile Controller] Sending successful response');
+            return sendSuccessResponse(res, 'Profile updated successfully', {
+                profile: updatedProfile,
+                nutritionTargetsUpdated: true
+            });
         } catch (error) {
             console.error('[Profile Controller] Update error:', error);
             return sendErrorResponse(res, error.message || 'Error updating profile', 500);
