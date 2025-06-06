@@ -4,19 +4,17 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { Button } from '@/components/ui/Button';
 import { IngredientInput } from '@/components/food-edit';
 import { foodService } from '@/services/foodService';
 import { textAnalysisService } from '@/services/textAnalysisService';
 import { DetailedFoodResponse } from '@/types/food';
+import { TextAnalysisResponse } from '@/types/analysis';
 
 interface Ingredient {
     id?: string;
     ingredient_name: string;
     ingredient_amount: string | number;
 }
-
-import { TextAnalysisResponse } from '@/types/analysis';
 
 export default function FoodEditScreen() {
     const { id } = useLocalSearchParams();
@@ -30,10 +28,7 @@ export default function FoodEditScreen() {
     const [validationErrors, setValidationErrors] = useState<{
         foodName?: string;
         ingredients?: string[];
-    }>({
-        foodName: undefined,
-        ingredients: [],
-    });
+    }>({});
 
     useEffect(() => {
         fetchFoodDetails();
@@ -43,8 +38,7 @@ export default function FoodEditScreen() {
         try {
             setLoading(true);
             setError(null);
-            const foodId = String(id);
-            const response = await foodService.getDetailedFood(foodId);
+            const response = await foodService.getDetailedFood(String(id));
 
             if (response.success) {
                 setFoodName(response.data.food.food_name);
@@ -63,50 +57,6 @@ export default function FoodEditScreen() {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleAddIngredient = () => {
-        setIngredients([...ingredients, { ingredient_name: '', ingredient_amount: '' }]);
-    };
-
-    const handleRemoveIngredient = (index: number) => {
-        const newIngredients = [...ingredients];
-        newIngredients.splice(index, 1);
-        setIngredients(newIngredients);
-    };
-
-    const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
-        const newIngredients = [...ingredients];
-        newIngredients[index] = {
-            ...newIngredients[index],
-            [field]: value,
-        };
-        setIngredients(newIngredients);
-    };
-
-    const validateInputs = () => {
-        const errors: {
-            foodName?: string;
-            ingredients?: string[];
-        } = {};
-
-        if (!foodName.trim()) {
-            errors.foodName = 'Food name is required';
-        }
-
-        const ingredientErrors = ingredients.map(ingredient => {
-            if (!ingredient.ingredient_name.trim() || !ingredient.ingredient_amount) {
-                return 'Ingredient name and amount are required';
-            }
-            return null;
-        }).filter(Boolean) as string[];
-
-        if (ingredientErrors.length > 0) {
-            errors.ingredients = ingredientErrors;
-        }
-
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
     };
 
     const validateForm = () => {
@@ -138,6 +88,34 @@ export default function FoodEditScreen() {
         return Object.keys(errors).length === 0;
     };
 
+    const handleAddIngredient = () => {
+        setIngredients([...ingredients, { ingredient_name: '', ingredient_amount: '' }]);
+    };
+
+    const handleRemoveIngredient = (index: number) => {
+        const newIngredients = [...ingredients];
+        newIngredients.splice(index, 1);
+        setIngredients(newIngredients);
+    };
+
+    const handleIngredientChange = (index: number, field: keyof Ingredient, value: string) => {
+        const newIngredients = [...ingredients];
+        newIngredients[index] = {
+            ...newIngredients[index],
+            [field]: value,
+        };
+        setIngredients(newIngredients);
+
+        // Clear validation error for this ingredient
+        if (validationErrors.ingredients?.[index]) {
+            const newErrors = { ...validationErrors };
+            if (newErrors.ingredients) {
+                newErrors.ingredients[index] = '';
+                setValidationErrors(newErrors);
+            }
+        }
+    };
+
     const handleSave = async () => {
         if (!validateForm()) {
             Alert.alert('Validation Error', 'Please check the form for errors');
@@ -153,53 +131,23 @@ export default function FoodEditScreen() {
             setSaving(true);
             setError(null);
 
-            // Construct text description for re-analysis
+            // Format ingredients text
             const ingredients_text = ingredients
-                .map(ing => `${ing.ingredient_amount} ${ing.ingredient_name}`)
+                .map(ing => `${ing.ingredient_amount}g ${ing.ingredient_name}`)
                 .join(', ');
             const textDescription = `${foodName}. Ingredients: ${ingredients_text}`;
 
-            // Re-analyze with text analysis service to get updated nutrition info
+            // Get updated nutrition info
             const analysisResponse = await textAnalysisService.analyzeText(
                 textDescription,
                 originalFoodDetails.food.meal_type_id
-            ) as TextAnalysisResponse;
-
-            // Create new food record with analysis data and original image
-            const { food } = analysisResponse.data;
-            const newFoodData = {
-                food_name: foodName,
-                food_image: originalFoodDetails.food.food_image,
-                cloudinary_public_id: originalFoodDetails.food.cloudinary_public_id,
-                meal_type_id: originalFoodDetails.food.meal_type_id,
-                food_description: food.food_description,
-                food_advice: food.food_advice,
-                food_preparation: food.food_preparation,
-                ingredients: ingredients.map(ing => {
-                    // Find corresponding ingredient from analysis
-                    const analysisIngredient = food.foodIngredientList?.find(
-                        ai => ai['Ingredient Name']?.toLowerCase() === ing.ingredient_name?.toLowerCase()
-                    );
-
-                    return {
-                        ingredient_name: ing.ingredient_name,
-                        ingredient_amount: ing.ingredient_amount,
-                        ingredient_protein: analysisIngredient?.['Ingredient Protein'] || '0g',
-                        ingredient_carb: analysisIngredient?.['Ingredient Carb'] || '0g',
-                        ingredient_fat: analysisIngredient?.['Ingredient Fat'] || '0g',
-                        ingredient_fiber: analysisIngredient?.['Ingredient Fiber'] || '0g',
-                        ingredient_description: analysisIngredient?.['Ingredient Description'] || {}
-                    };
-                })
-            };            // Create new food record using text analysis service
-            const createResponse = await textAnalysisService.analyzeText(
-                `${foodName}. Ingredients: ${ingredients_text}`,
-                originalFoodDetails.food.meal_type_id
             );
 
-            if (!createResponse.success) {
-                throw new Error('Failed to create new food version');
-            }            // Navigate back to food details with the updated data
+            if (!analysisResponse.success) {
+                throw new Error('Failed to analyze food');
+            }
+
+            // Navigate back to details screen
             router.replace({
                 pathname: '/food-details',
                 params: {
@@ -207,9 +155,8 @@ export default function FoodEditScreen() {
                     refresh: Date.now().toString()
                 }
             });
-
         } catch (err) {
-            console.error('[FoodEdit] Save Error:', err);
+            console.error('[FoodEdit] Error:', err);
             setError(err instanceof Error ? err.message : 'Failed to save changes');
         } finally {
             setSaving(false);
@@ -224,22 +171,42 @@ export default function FoodEditScreen() {
         );
     }
 
+    if (error) {
+        return (
+            <ThemedView style={[styles.container, styles.centered]}>
+                <ThemedText style={styles.errorText}>{error}</ThemedText>
+                <TouchableOpacity style={styles.retryButton} onPress={fetchFoodDetails}>
+                    <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
+                </TouchableOpacity>
+            </ThemedView>
+        );
+    }
+
     return (
         <ThemedView style={styles.container}>
-            <Stack.Screen options={{
-                headerShown: false
-            }} />
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#333" />
-                </TouchableOpacity>
-                <ThemedText style={styles.headerTitle}>Edit Food</ThemedText>
-                <View style={{ width: 24 }} />
-            </View>
+            <Stack.Screen
+                options={{
+                    title: 'Edit Food',
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={handleSave}
+                            disabled={saving}
+                            style={styles.saveButton}
+                        >
+                            {saving ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <ThemedText style={styles.saveButtonText}>Save</ThemedText>
+                            )}
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
 
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.form}>
-                <View>
-                    <ThemedText style={styles.label}>Food Name</ThemedText>                    <TextInput
+            <ScrollView style={styles.scrollView}>
+                <View style={styles.form}>
+                    <ThemedText style={styles.label}>Food Name</ThemedText>
+                    <TextInput
                         style={[styles.input, validationErrors.foodName && styles.inputError]}
                         value={foodName}
                         onChangeText={(text) => {
@@ -253,9 +220,6 @@ export default function FoodEditScreen() {
                     {validationErrors.foodName && (
                         <ThemedText style={styles.errorText}>{validationErrors.foodName}</ThemedText>
                     )}
-                    {validationErrors.foodName && (
-                        <ThemedText style={styles.errorText}>{validationErrors.foodName}</ThemedText>
-                    )}
 
                     <View style={styles.ingredientsHeader}>
                         <ThemedText style={styles.label}>Ingredients</ThemedText>
@@ -266,7 +230,9 @@ export default function FoodEditScreen() {
                             <Ionicons name="add-circle" size={24} color="#163166" />
                             <ThemedText style={styles.addButtonText}>Add Ingredient</ThemedText>
                         </TouchableOpacity>
-                    </View>                    {ingredients.map((ingredient, index) => (
+                    </View>
+
+                    {ingredients.map((ingredient, index) => (
                         <IngredientInput
                             key={index}
                             index={index}
@@ -280,42 +246,18 @@ export default function FoodEditScreen() {
                     ))}
                 </View>
             </ScrollView>
-
-            {/* Add save button at bottom */}
-            <View style={styles.saveButtonContainer}>
-                <Button
-                    title="Save Changes"
-                    onPress={handleSave}
-                    style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-                    disabled={saving}
-                >
-                    {saving && <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />}
-                </Button>
-            </View>
-
-            {error && (
-                <View style={styles.errorContainer}>
-                    <ThemedText style={styles.errorText}>{error}</ThemedText>
-                </View>
-            )}
         </ThemedView>
     );
 }
 
 const styles = StyleSheet.create({
-    inputError: {
-        borderColor: '#FF4D4F',
-        borderWidth: 1,
-    },
-    errorText: {
-        color: '#FF4D4F',
-        fontSize: 12,
-        marginTop: 4,
-        marginBottom: 8,
-    },
     container: {
         flex: 1,
         backgroundColor: '#f9f9f9',
+    },
+    centered: {
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     scrollView: {
         flex: 1,
@@ -338,6 +280,16 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         fontSize: 16,
     },
+    inputError: {
+        borderColor: '#FF4D4F',
+        borderWidth: 1,
+    },
+    errorText: {
+        color: '#FF4D4F',
+        fontSize: 12,
+        marginTop: 4,
+        marginBottom: 8,
+    },
     ingredientsHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -356,67 +308,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '500',
     },
-    ingredientRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    ingredientInputs: {
-        flex: 1,
-        flexDirection: 'row',
-        marginRight: 8,
-    },
-    ingredientName: {
-        flex: 2,
-        marginRight: 8,
-        marginBottom: 0,
-    },
-    ingredientAmount: {
-        flex: 1,
-        marginBottom: 0,
-    },
-    removeButton: {
-        padding: 8,
-    },
-    saveButtonContainer: {
-        padding: 16,
-        backgroundColor: '#fff',
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: '#e0e0e0',
-    },
     saveButton: {
-        backgroundColor: '#163166',
-        height: 48,
-        borderRadius: 8,
-    },
-    saveButtonDisabled: {
-        opacity: 0.7,
-    },
-    errorContainer: {
-        position: 'absolute',
-        bottom: 80,
-        left: 16,
-        right: 16,
-        padding: 12,
-        backgroundColor: '#FFE7E7',
-        borderRadius: 8,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#FF4D4F',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        elevation: 2,
-    },
-    backButton: {
+        marginRight: 16,
         padding: 8,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    retryButton: {
+        backgroundColor: '#163166',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 8,
+        marginTop: 16,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '500',
     },
 });

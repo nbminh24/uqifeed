@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator, Text, TouchableOpacity, Platform } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedView } from '@/components/ThemedView';
@@ -25,9 +25,16 @@ const DEFAULT_FOOD_ID = 'm1nI1QwutJ5E07s4dEIr';
 
 export default function FoodDetailsScreen() {
     const { id } = useLocalSearchParams();
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [foodDetails, setFoodDetails] = useState<DetailedFoodResponse['data'] | null>(null);
+
+    const handleEditPress = () => {
+        if (id) {
+            router.push(`/food-edit?id=${id}`);
+        }
+    };
 
     const fetchFoodDetails = async () => {
         try {
@@ -137,11 +144,11 @@ export default function FoodDetailsScreen() {
                     <Text style={styles.timeText}>
                         {new Date(food.created_at).toLocaleString()}
                     </Text>
-                </View>
-                <TouchableOpacity
+                </View>                <TouchableOpacity
                     onPress={() => router.push({ pathname: '/food-edit', params: { id: id } })}
+                    style={styles.editButton}
                 >
-                    <Ionicons name="pencil" size={24} color="#333" />
+                    <Ionicons name="pencil" size={20} color="#fff" />
                 </TouchableOpacity>
             </View>
 
@@ -192,6 +199,14 @@ export default function FoodDetailsScreen() {
     );
 }
 const styles = StyleSheet.create({
+    editButton: {
+        backgroundColor: '#163166',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     container: {
         flex: 1,
         backgroundColor: '#F5F6FA',
@@ -585,6 +600,14 @@ const styles = StyleSheet.create({
     }, retryButtonText: {
         color: '#fff',
         fontSize: 16,
-    }
+    },
+    editButton: {
+        backgroundColor: '#163166',
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
 
