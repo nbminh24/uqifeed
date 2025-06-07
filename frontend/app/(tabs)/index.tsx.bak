@@ -11,7 +11,6 @@ export default function HomeScreen() {
   const navigateToImageAnalyze = () => {
     router.push('/image-analyze');
   };
-
   const navigateToTextAnalyze = () => {
     router.push('/text-analyze');
   };
@@ -19,6 +18,58 @@ export default function HomeScreen() {
   const navigateToChatbot = () => {
     router.push('/chatbot');
   };
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      position: 'relative',
+      backgroundColor: '#fff',
+    },
+    mascotContainer: {      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+      zIndex: 1,
+    },    mascotTouchable: {
+      borderRadius: 20,
+      backgroundColor: 'transparent',
+    },
+    mascotFrame: {
+      padding: 10,
+      backgroundColor: 'transparent',
+      borderRadius: 20,
+    },    mascotWrapper: {
+      overflow: 'hidden',
+      height: MASCOT_SIZE - 90,
+    },
+    mascot: {
+      width: MASCOT_SIZE,
+      height: MASCOT_SIZE,
+    },
+    contentContainer: {
+      flex: 1,
+      paddingBlockStart: MASCOT_SIZE - 90,
+    },
+    floatingButtonsContainer: {
+      position: 'absolute', 
+      insetBlockStart: 90,
+      insetInlineEnd: 16,
+      flexDirection: 'column',
+      gap: 10,
+      zIndex: 1000,
+    },
+    floatingButton: {
+      shadowColor: '#000',
+      shadowOffset: {
+        inlineSize: 0,
+        blockSize: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+  });
 
   return (
     <View style={styles.container}>
@@ -62,55 +113,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  } as const,
-  mascotContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 1,
-  } as const,
-  mascotTouchable: {
-    borderRadius: 20,
-  } as const,
-  mascotFrame: {
-    padding: 10,
-    borderRadius: 20,
-  } as const,
-  mascotWrapper: {
-    overflow: 'hidden',
-    height: MASCOT_SIZE - 90,
-  } as const,
-  mascot: {
-    width: MASCOT_SIZE,
-    height: MASCOT_SIZE,
-  } as const,
-  contentContainer: {
-    flex: 1,
-    paddingTop: MASCOT_SIZE - 90,
-  } as const,
-  floatingButtonsContainer: {
-    position: 'absolute',
-    top: 90,
-    right: 16,
-    flexDirection: 'column',
-    gap: 10,
-    zIndex: 1000,
-  } as const,
-  floatingButton: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  } as const,
-});
