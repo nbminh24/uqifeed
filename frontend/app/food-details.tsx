@@ -210,17 +210,19 @@ export default function FoodDetailsScreen() {
                     </View>
                 </View>
 
-                <ScrollView>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
                     <FoodImage
                         imageUrl={food.food_image || (typeof food.food_description === 'string' ? "https://i.pinimg.com/736x/4b/df/13/4bdf13a13c23d9d873a9ed306ad5a6fa.jpg" : "https://mir-s3-cdn-cf.behance.net/projects/404/7db057114460205.Y3JvcCw5OTksNzgyLDAsMTA4.jpg")}>
                         <NutritionScore nutritionScore={nutritionScore} inBadgeMode={true} />
-                    </FoodImage><CaloriesAndMacros
+                    </FoodImage>
+                    <CaloriesAndMacros
                         calories={food.total_calorie || 0}
                         protein={food.total_protein || 0}
                         carbs={food.total_carb || 0}
                         fats={food.total_fat || 0}
                     />
-                    <IngredientsList ingredients={ingredients} />                {nutritionComments.sort((a, b) => {
+                    <IngredientsList ingredients={ingredients} />
+                    {nutritionComments.sort((a, b) => {
                         const order = {
                             'calories': 1,
                             'calorie': 1,
@@ -243,7 +245,8 @@ export default function FoodDetailsScreen() {
                     }).map((comment, index) => (
                         <NutrientCard
                             key={index}
-                            nutrient={comment} nutritionScore={nutritionScore}
+                            nutrient={comment}
+                            nutritionScore={nutritionScore}
                             food={food}
                             targetNutrition={targetNutrition}
                             mealType={getMealTypeString(food.meal_type_id)}
@@ -251,7 +254,14 @@ export default function FoodDetailsScreen() {
                     ))}
                     <FoodDescriptionInfo food_description={food.food_description} />
                     <FoodAdvice food_advice={food.food_advice} />
-                    <FoodPreparation food_preparation={food.food_preparation} />
+                    <FoodPreparation food_preparation={food.food_preparation} />                    <View style={styles.confirmButtonContainer}>
+                        <TouchableOpacity
+                            style={styles.confirmButton}
+                            onPress={() => router.replace("/")}
+                        >
+                            <Text style={styles.confirmButtonText}>Xác nhận</Text>
+                        </TouchableOpacity>
+                    </View>
                 </ScrollView>
             </ThemedView>
         </SafeAreaView>
@@ -262,6 +272,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F5F6FA',
+    },
+    scrollContent: {
+        paddingBottom: 32,
     },
     header: {
         flexDirection: 'row',
@@ -285,421 +298,6 @@ const styles = StyleSheet.create({
     timeText: {
         fontSize: 13,
         color: '#6B7280',
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        gap: 8,
-        marginLeft: 8,
-    },
-    editButton: {
-        backgroundColor: '#065BAA',
-        aspectRatio: 1,
-        paddingHorizontal: 8,
-        paddingVertical: 8,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    deleteButton: {
-        backgroundColor: '#DC3545',
-        aspectRatio: 1,
-        paddingHorizontal: 8,
-        paddingVertical: 8,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    disabledButton: {
-        opacity: 0.5,
-    },
-    scrollView: {
-        flex: 1,
-        width: '100%',
-        backgroundColor: '#f2f2f2',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-        marginBottom: 16,
-    },
-    headerTitle: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    foodName: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#000',
-        marginBottom: 4,
-    },
-    timeText: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 16,
-    },
-    fiberScoreSection: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 16,
-        margin: 16,
-        marginTop: 0,
-    },
-    fiberHeaderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    fiberScoreText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginLeft: 10,
-        color: '#333',
-    },
-    fiberScoreBar: {
-        height: 12,
-        backgroundColor: '#EEEEEE',
-        borderRadius: 6,
-        marginBottom: 8,
-    },
-    fiberScoreProgress: {
-        width: '10%', // Adjust based on fiber score
-        height: '100%',
-        backgroundColor: '#FF6B6B',
-        borderRadius: 6,
-    },
-    fiberScoreValue: {
-        marginBottom: 12,
-    },
-    fiberAmountText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#FF6B6B',
-    },
-    fiberDescription: {
-        fontSize: 16,
-        color: '#555',
-        lineHeight: 22,
-    }, imageContainer: {
-        width: 300,
-        height: 300,
-        borderRadius: 150,
-        overflow: 'hidden',
-        marginVertical: 16,
-        position: 'relative',
-        alignSelf: 'center',
-    },
-    foodImage: {
-        width: '100%',
-        height: '100%',
-    }, mascotContainer: {
-        position: 'absolute',
-        left: 16,
-        bottom: 16,
-        width: 60,
-        height: 60,
-        backgroundColor: '#fff',
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    }, mascotImage: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-    }, nutritionScoreCircle: {
-        width: 65,
-        height: 65,
-        borderRadius: 32.5,
-        backgroundColor: '#47b255',
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 4,
-    }, nutritionScoreText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    smallerScoreText: {
-        fontSize: 20,
-    }, nutritionScoreContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        margin: 16,
-        marginBottom: 0,
-    }, nutritionDetailsContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        margin: 16,
-        marginTop: 8,
-        marginBottom: 0,
-    },
-    nutritionScoreRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    nutritionScoreBadge: {
-        position: 'absolute',
-        right: 20,
-        top: -20,
-        zIndex: 10,
-    },
-    nutritionScoreDetails: {
-        marginLeft: 16,
-        flex: 1,
-    },
-    nutritionScoreLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    nutritionScoreDescription: {
-        fontSize: 14,
-        color: '#666',
-    },
-    nutritionCard: {
-        margin: 16,
-        padding: 16,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    nutritionHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    adjustButton: {
-        backgroundColor: '#f9f9f9',
-        borderRadius: 16,
-        paddingVertical: 6,
-        paddingHorizontal: 16,
-    },
-    adjustButtonText: {
-        color: '#333',
-        fontSize: 14,
-    },
-    caloriesRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    caloriesValue: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        marginLeft: 8,
-    },
-    caloriesUnit: {
-        fontSize: 16,
-        color: '#888',
-        marginLeft: 4,
-        alignSelf: 'flex-end',
-        marginBottom: 4,
-    },
-    macrosBars: {
-        height: 8,
-        flexDirection: 'row',
-        marginBottom: 16,
-    },
-    carbsBar: {
-        flex: 1,
-        height: '100%',
-        backgroundColor: '#FFD166',
-        borderTopLeftRadius: 4,
-        borderBottomLeftRadius: 4,
-    },
-    fatsBar: {
-        flex: 5,
-        height: '100%',
-        backgroundColor: '#06D6A0',
-    },
-    proteinsBar: {
-        flex: 10,
-        height: '100%',
-        backgroundColor: '#118AB2',
-        borderTopRightRadius: 4,
-        borderBottomRightRadius: 4,
-    },
-    macrosLegendRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    macroLegendItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    macroLegendDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        marginRight: 6,
-    },
-    carbsDot: {
-        backgroundColor: '#FFD166',
-    },
-    fatsDot: {
-        backgroundColor: '#06D6A0',
-    },
-    proteinsDot: {
-        backgroundColor: '#118AB2',
-    },
-    macroLegendTitle: {
-        fontSize: 14,
-        color: '#666',
-        marginRight: 4,
-    },
-    macroValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    section: {
-        margin: 16,
-        marginTop: 0,
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-    },
-    sectionHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 12,
-    },
-    ingredientsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-    }, ingredientTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#ecf6ed',
-        borderRadius: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        marginRight: 8,
-        marginBottom: 8,
-    }, ingredientText: {
-        fontSize: 14,
-        color: '#333',
-        fontWeight: 'bold',
-    },
-    ingredientIcon: {
-        marginRight: 6,
-    },
-    feedbackItem: {
-        flexDirection: 'row',
-        marginBottom: 16,
-    },
-    feedbackIconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: '#F9F9F9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    feedbackContent: {
-        flex: 1,
-    },
-    feedbackTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    feedbackDescription: {
-        fontSize: 14,
-        color: '#555',
-        lineHeight: 20,
-    },
-    tagsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-    },
-    tag: {
-        backgroundColor: '#e8f0fe',
-        borderRadius: 16,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        marginRight: 8,
-        marginBottom: 8,
-    },
-    tagText: {
-        color: '#163166',
-        fontSize: 14,
-    },
-    actionButtonsContainer: {
-        paddingHorizontal: 16,
-        marginVertical: 16,
-    },
-    actionButton: {
-        marginVertical: 8,
-    }, bottomPadding: {
-        height: 20,
-    }, descriptionText: {
-        fontSize: 14,
-        color: '#555',
-        lineHeight: 20,
-    },
-    descriptionSubtitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    descriptionSpacing: {
-        marginTop: 16,
-    },
-    errorText: {
-        fontSize: 16,
-        color: 'red',
-        textAlign: 'center'
-    },
-    loadingText: {
-        fontSize: 16,
-        color: '#333',
-        marginTop: 12,
-        textAlign: 'center',
-    },
-    retryButton: {
-        backgroundColor: '#163166',
-        paddingVertical: 10,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        marginTop: 16,
-    }, retryButtonText: {
-        color: '#fff',
-        fontSize: 16,
     },
     headerButtons: {
         flexDirection: 'row',
@@ -727,6 +325,44 @@ const styles = StyleSheet.create({
     },
     disabledButton: {
         opacity: 0.5,
+    },
+    confirmButtonContainer: {
+        padding: 16,
+        marginTop: 16,
+    },
+    confirmButton: {
+        backgroundColor: '#163166',
+        paddingVertical: 16,
+        paddingHorizontal: 24,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    confirmButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#333',
+        marginTop: 12,
+        textAlign: 'center',
+    },
+    errorText: {
+        fontSize: 16,
+        color: 'red',
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#163166',
+        paddingVertical: 10,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        marginTop: 16,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontSize: 16,
     },
 });
 
