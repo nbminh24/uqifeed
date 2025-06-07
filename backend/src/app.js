@@ -20,7 +20,8 @@ app.use(morgan('dev')); // Logging
 app.use(cors({
     origin: ['http://localhost:19000', 'http://localhost:19006', 'http://10.0.2.2:19000',
         'exp://localhost:19000', 'http://10.0.0.233:19000', 'exp://10.0.0.233:19000',
-        'http://10.0.7.189:19000', 'exp://10.0.7.189:19000'],
+        'http://10.0.7.189:19000', 'exp://10.0.7.189:19000',
+        'http://10.0.113.231:19000', 'exp://10.0.113.231:19000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     exposedHeaders: ['ETag'],
@@ -41,11 +42,13 @@ app.use('/static/text-mock.jpg', (req, res) => {
 const indexRoutes = require('./routes/index');
 const testRoutes = require('./routes/test');
 const foodHistoryRoutes = require('./routes/foodHistory');
+const chatbotRoutes = require('./routes/chatbot');
 
 // Use routes
 app.use('/', indexRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/food-history', foodHistoryRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 404 handler
 app.use((req, res, next) => {

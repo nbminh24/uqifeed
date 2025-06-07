@@ -14,6 +14,8 @@ export const Colors = {
     icon: '#1E2A3A', // Dark blue-black for icons
     tabIconDefault: '#90A4AE', // Blue-grey for inactive tabs
     tabIconSelected: '#1E2A3A', // Dark blue-black for selected tab
+    primary: '#163166', // Primary color for user messages
+    secondaryBackground: '#F0F2F5', // Background color for bot messages
   },
   dark: {
     text: '#E0F2F1', // Light cyan-tinted white for text
@@ -22,5 +24,7 @@ export const Colors = {
     icon: '#64FFDA', // Bright mint for icons
     tabIconDefault: '#546E7A', // Darker blue-grey for inactive tabs
     tabIconSelected: '#64FFDA', // Bright mint for selected tab
+    primary: '#64FFDA', // Primary color for user messages
+    secondaryBackground: '#1E2D3D', // Background color for bot messages
   },
 };

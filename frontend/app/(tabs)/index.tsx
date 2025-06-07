@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Dimensions, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 
 import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
@@ -11,24 +11,32 @@ export default function HomeScreen() {
   const navigateToImageAnalyze = () => {
     router.push('/image-analyze');
   };
-
   const navigateToTextAnalyze = () => {
     router.push('/text-analyze');
+  };
+
+  const navigateToChatbot = () => {
+    router.push('/chatbot');
   };
 
   return (
     <View style={styles.container}>
       {/* Mascot GIF with frame */}
       <View style={styles.mascotContainer}>
-        <View style={styles.mascotFrame}>
-          <View style={styles.mascotWrapper}>
-            <Image
-              source={{ uri: 'https://cdn.dribbble.com/userupload/33219605/file/original-3e652baea723121800ca0068452af00e.gif' }}
-              style={styles.mascot}
-              resizeMode="contain"
-            />
+        <TouchableOpacity
+          onPress={navigateToChatbot}
+          style={styles.mascotTouchable}
+          activeOpacity={0.8}
+        >
+          <View style={styles.mascotFrame}>
+            <View style={styles.mascotWrapper}>
+              <Image
+                source={{ uri: 'https://cdn.dribbble.com/userupload/33219605/file/original-3e652baea723121800ca0068452af00e.gif' }}
+                style={styles.mascot}
+                resizeMode="contain" />
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Main content */}
@@ -67,6 +75,15 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 1,
+  },
+  mascotTouchable: {
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   mascotFrame: {
     padding: 10,
