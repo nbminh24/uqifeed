@@ -1,26 +1,17 @@
 /**
- * Mock Authentication Middleware for Testing
- * This middleware bypasses authentication and sets a mock user for testing purposes.
+ * Mock Authentication Middleware
+ * This middleware bypasses authentication and sets the default system user for all requests
  */
-const TargetNutrition = require('../models/targetNutrition');
+const MOCK_USER = require('../config/mockUser');
 
 exports.authenticate = async (req, res, next) => {
     try {
-        // Set a mock user for testing - using real admin user ID
-        req.user = {
-            id: 'nR3t7mJhxhIdQvTqSIqX',
-            email: 'admin@gmail.com',
-            username: 'admin',
-            role: 'admin',
-            createdAt: '2025-05-23T05:51:57.402Z',
-            updatedAt: '2025-05-23T05:51:57.402Z'
-        };
-
-        // Continue to the next middleware
+        // Always set the default system user
+        req.user = MOCK_USER;
         next();
     } catch (error) {
         console.error('Error in mock authentication middleware:', error);
-        next();
+        next(error);
     }
 };
 

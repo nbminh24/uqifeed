@@ -1,11 +1,8 @@
 const jwt = require('jsonwebtoken');
 const { admin } = require('../config/firebase');
 
-// Mock user for development
-const DEFAULT_USER = {
-    id: 'nR3t7mJhxhIdQvTqSIqX', // Admin user ID
-    role: 'admin'
-};
+// Import the mock user configuration
+const MOCK_USER = require('../config/mockUser');
 
 /**
  * Authentication Middleware
@@ -17,11 +14,9 @@ exports.authenticate = async (req, res, next) => {
 
         // Get token from Authorization header
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-            token = req.headers.authorization.split(' ')[1];
-
-            // For development: accept default token
+            token = req.headers.authorization.split(' ')[1];            // Always accept default token
             if (token === 'default-auth-token-123') {
-                req.user = DEFAULT_USER;
+                req.user = MOCK_USER;
                 return next();
             }
         }

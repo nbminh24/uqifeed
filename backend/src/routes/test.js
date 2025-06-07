@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const CloudinaryService = require('../services/cloudinaryService');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
-const { authenticate } = require('../middleware/auth');
+const { authenticate } = require('../middleware/mockAuth');
 
 /**
  * Test upload ảnh lên Cloudinary

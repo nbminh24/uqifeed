@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate } = require('../middleware/mockAuth');
 const profileController = require('../controllers/profile');
 const { body } = require('express-validator');
 const validationMiddleware = require('../middleware/validation');

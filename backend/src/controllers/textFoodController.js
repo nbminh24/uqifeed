@@ -219,10 +219,8 @@ const TextFoodController = {
                 });
             }
 
-            const totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
-
-            // Update food
-            const updatedFood = await Food.update(foodId, {
+            const totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);            // Prepare update data while preserving existing image
+            const updateData = {
                 meal_type_id,
                 food_text_description: textDescription,
                 food_name: foodData.foodName,
@@ -234,7 +232,18 @@ const TextFoodController = {
                 total_fat: totalFat,
                 total_fiber: totalFiber,
                 total_calorie: totalCalorie
-            });
+            };
+
+            // Only include image-related fields if they exist
+            if (existingFood.food_image) {
+                updateData.food_image = existingFood.food_image;
+            }
+            if (existingFood.cloudinary_public_id) {
+                updateData.cloudinary_public_id = existingFood.cloudinary_public_id;
+            }
+
+            // Update food
+            const updatedFood = await Food.update(foodId, updateData);
 
             // Update ingredients
             await Ingredient.deleteByFoodId(foodId);

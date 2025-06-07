@@ -16,8 +16,6 @@ interface Ingredient {
     ingredient_amount: string | number;
 }
 
-// Removed text analysis type import
-
 function FoodEditScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
@@ -84,31 +82,6 @@ function FoodEditScreen() {
         setIngredients(newIngredients);
     };
 
-    const validateInputs = () => {
-        const errors: {
-            foodName?: string;
-            ingredients?: string[];
-        } = {};
-
-        if (!foodName.trim()) {
-            errors.foodName = 'Food name is required';
-        }
-
-        const ingredientErrors = ingredients.map(ingredient => {
-            if (!ingredient.ingredient_name.trim() || !ingredient.ingredient_amount) {
-                return 'Ingredient name and amount are required';
-            }
-            return null;
-        }).filter(Boolean) as string[];
-
-        if (ingredientErrors.length > 0) {
-            errors.ingredients = ingredientErrors;
-        }
-
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    };
-
     const validateForm = () => {
         const errors: {
             foodName?: string;
@@ -136,7 +109,9 @@ function FoodEditScreen() {
 
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
-    }; const handleSave = async () => {
+    };
+
+    const handleSave = async () => {
         if (!validateForm()) {
             Alert.alert('Validation Error', 'Please check the form for errors');
             return;
@@ -211,7 +186,8 @@ function FoodEditScreen() {
 
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.form}>
                 <View>
-                    <ThemedText style={styles.label}>Food Name</ThemedText>                    <TextInput
+                    <ThemedText style={styles.label}>Food Name</ThemedText>
+                    <TextInput
                         style={[styles.input, validationErrors.foodName && styles.inputError]}
                         value={foodName}
                         onChangeText={(text) => {
@@ -225,9 +201,6 @@ function FoodEditScreen() {
                     {validationErrors.foodName && (
                         <ThemedText style={styles.errorText}>{validationErrors.foodName}</ThemedText>
                     )}
-                    {validationErrors.foodName && (
-                        <ThemedText style={styles.errorText}>{validationErrors.foodName}</ThemedText>
-                    )}
 
                     <View style={styles.ingredientsHeader}>
                         <ThemedText style={styles.label}>Ingredients</ThemedText>
@@ -238,7 +211,8 @@ function FoodEditScreen() {
                             <Ionicons name="add-circle" size={24} color="#163166" />
                             <ThemedText style={styles.addButtonText}>Add Ingredient</ThemedText>
                         </TouchableOpacity>
-                    </View>                    {ingredients.map((ingredient, index) => (
+                    </View>
+                    {ingredients.map((ingredient, index) => (
                         <IngredientInput
                             key={index}
                             index={index}
@@ -253,7 +227,6 @@ function FoodEditScreen() {
                 </View>
             </ScrollView>
 
-            {/* Add save button at bottom */}
             <View style={styles.saveButtonContainer}>
                 <Button
                     title="Save Changes"
@@ -275,16 +248,6 @@ function FoodEditScreen() {
 }
 
 const styles = StyleSheet.create({
-    inputError: {
-        borderColor: '#FF4D4F',
-        borderWidth: 1,
-    },
-    errorText: {
-        color: '#FF4D4F',
-        fontSize: 12,
-        marginTop: 4,
-        marginBottom: 8,
-    },
     container: {
         flex: 1,
         backgroundColor: '#f9f9f9',
@@ -310,6 +273,16 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         fontSize: 16,
     },
+    inputError: {
+        borderColor: '#FF4D4F',
+        borderWidth: 1,
+    },
+    errorText: {
+        color: '#FF4D4F',
+        fontSize: 12,
+        marginTop: 4,
+        marginBottom: 8,
+    },
     ingredientsHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -327,28 +300,6 @@ const styles = StyleSheet.create({
         color: '#163166',
         fontSize: 16,
         fontWeight: '500',
-    },
-    ingredientRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    ingredientInputs: {
-        flex: 1,
-        flexDirection: 'row',
-        marginRight: 8,
-    },
-    ingredientName: {
-        flex: 2,
-        marginRight: 8,
-        marginBottom: 0,
-    },
-    ingredientAmount: {
-        flex: 1,
-        marginBottom: 0,
-    },
-    removeButton: {
-        padding: 8,
     },
     saveButtonContainer: {
         padding: 16,

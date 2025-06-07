@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const TextRecognitionController = require('../controllers/textRecognitionController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticate } = require('../middleware/mockAuth');
 
 // Analyze text description without saving
 router.post('/analyze', authenticateToken, TextRecognitionController.analyzeText);

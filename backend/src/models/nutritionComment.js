@@ -80,8 +80,29 @@ class NutritionComment {
             throw error;
         }
     }
-}
 
-module.exports = NutritionComment;
+    /**
+     * Delete all nutrition comments for a food
+     * @param {string} foodId - Food ID
+     * @returns {Promise<void>}
+     */
+    static async deleteByFoodId(foodId) {
+        try {
+            const snapshot = await commentsCollection
+                .where('food_id', '==', foodId)
+                .get();
+
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+        } catch (error) {
+            console.error('Error deleting nutrition comments by food ID:', error);
+            throw error;
+        }
+    }
+}
 
 module.exports = NutritionComment;
