@@ -43,8 +43,7 @@ export default function TabLayout() {
           fontWeight: '600',
           fontFamily: Platform.select({ ios: 'SF Pro Display', android: 'sans-serif-medium' }),
         },
-      }}>
-      <Tabs.Screen
+      }}>      <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
