@@ -207,9 +207,9 @@ function convertNutrientTypeForDatabase(nutrientType) {
     const mapping = {
         protein: 'Protein',
         fat: 'Fat',
-        carbs: 'Carb',
+        carbs: 'Carb', // Matches nutritionCommentService
         fiber: 'Fiber',
-        calories: 'Calorie'
+        calories: 'Calorie' // Matches nutritionCommentService
     };
 
     return mapping[nutrientType] || nutrientType;

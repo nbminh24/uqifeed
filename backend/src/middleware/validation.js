@@ -5,15 +5,16 @@ const { validationResult } = require('express-validator');
  * Checks for validation errors from express-validator
  */
 const validationMiddleware = (req, res, next) => {
-    const errors = validationResult(req);
+    console.log('[Validation Middleware] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('[Validation Middleware] Target time:', req.body.target_time);
+    console.log('[Validation Middleware] Target time type:', typeof req.body.target_time);
 
-    if (!errors.isEmpty()) {
+    const errors = validationResult(req); if (!errors.isEmpty()) {
+        const errorArray = errors.array();
+        console.log('[Validation Middleware] All validation errors:', JSON.stringify(errorArray, null, 2));
         return res.status(400).json({
             success: false,
-            errors: errors.array().map(error => ({
-                field: error.param,
-                message: error.msg
-            }))
+            errors: [{ message: errorArray[0].msg }]
         });
     }
 

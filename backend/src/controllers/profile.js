@@ -1,4 +1,6 @@
 const Profile = require('../models/profile');
+const TargetNutrition = require('../models/targetNutrition');
+const NutritionCalculator = require('../services/nutritionCalculator');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
 
 /**
@@ -13,13 +15,14 @@ const ProfileController = {
      */
     createProfile: async (req, res) => {
         try {
+            console.log('[Profile Controller] Create request body:', req.body);
             const {
                 gender,
                 birthday,
                 height,
                 currentWeight,
                 targetWeight,
-                targetTime,
+                target_time,  // Changed from targetTime to target_time
                 activityLevel,
                 goal,
                 dietType
@@ -43,12 +46,13 @@ const ProfileController = {
                 height: parseFloat(height),
                 currentWeight: parseFloat(currentWeight),
                 targetWeight: parseFloat(targetWeight),
-                targetTime,
+                target_time,  // Changed from targetTime to target_time
                 activityLevel,
                 goal,
                 dietType
             };
 
+            console.log('[Profile Controller] Creating profile with data:', profileData);
             const profile = await Profile.create(profileData);
 
             return sendSuccessResponse(
@@ -58,7 +62,7 @@ const ProfileController = {
                 201
             );
         } catch (error) {
-            console.error('Create profile error:', error);
+            console.error('[Profile Controller] Create error:', error);
             return sendErrorResponse(
                 res,
                 error.message || 'Error creating profile',
@@ -106,56 +110,78 @@ const ProfileController = {
      */
     updateProfile: async (req, res) => {
         try {
+            console.log('[Profile Controller] Update request body:', req.body);
+
+            // Check if profile exists
+            const profile = await Profile.findByUserId(req.user.id);
+            if (!profile) {
+                return sendErrorResponse(res, 'Profile not found', 404);
+            }
+
+            // Validation is handled by express-validator middleware
             const {
                 gender,
                 birthday,
                 height,
                 currentWeight,
                 targetWeight,
-                targetTime,
+                target_time,
                 activityLevel,
                 goal,
                 dietType
             } = req.body;
 
-            // Find user profile
-            const profile = await Profile.findByUserId(req.user.id);
+            const profileData = {
+                gender: gender ?? profile.gender,
+                birthday: birthday ?? profile.birthday,
+                height: height !== undefined ? parseFloat(height) : profile.height,
+                currentWeight: currentWeight !== undefined ? parseFloat(currentWeight) : profile.currentWeight,
+                targetWeight: targetWeight !== undefined ? parseFloat(targetWeight) : profile.targetWeight,
+                target_time: target_time ?? profile.target_time,
+                activityLevel: activityLevel ?? profile.activityLevel,
+                goal: goal ?? profile.goal,
+                dietType: dietType ?? profile.dietType
+            }; console.log('[Profile Controller] Update data:', profileData);
+            const updatedProfile = await Profile.update(profile.id, profileData);
+            console.log('[Profile Controller] Updated profile:', updatedProfile);            // Calculate and update nutrition targets based on updated profile
+            console.log('[Profile Controller] Calculating nutrition targets for updated profile:', updatedProfile);
+            const nutritionTargets = NutritionCalculator.calculateNutritionTargets(updatedProfile);
+            console.log('[Profile Controller] Calculated nutrition targets:', nutritionTargets);
 
-            if (!profile) {
-                return sendErrorResponse(
-                    res,
-                    'Profile not found',
-                    404
-                );
+            try {
+                const existingNutrition = await TargetNutrition.findByUserId(req.user.id);
+                const nutritionData = {
+                    userId: req.user.id,
+                    profileId: updatedProfile.id,
+                    daily: nutritionTargets.daily,
+                    meals: nutritionTargets.meals,
+                    calculations: nutritionTargets.calculations
+                };
+                console.log('[Profile Controller] Nutrition data to save:', nutritionData);
+
+                let savedNutrition;
+                if (existingNutrition) {
+                    console.log('[Profile Controller] Updating existing target nutrition:', existingNutrition.id);
+                    savedNutrition = await TargetNutrition.update(existingNutrition.id, nutritionData);
+                } else {
+                    console.log('[Profile Controller] Creating new target nutrition');
+                    savedNutrition = await TargetNutrition.create(nutritionData);
+                }
+                console.log('[Profile Controller] Successfully saved target nutrition:', savedNutrition);
+            } catch (error) {
+                console.error('[Profile Controller] Error saving target nutrition:', error);
+                // Still send success response since profile was updated
+                return sendSuccessResponse(res, 'Profile updated successfully but failed to update nutrition targets. Please recalculate your nutrition targets.', { profile: updatedProfile });
             }
 
-            // Update profile data
-            const profileData = {
-                gender: gender || profile.gender,
-                birthday: birthday || profile.birthday,
-                height: height ? parseFloat(height) : profile.height,
-                currentWeight: currentWeight ? parseFloat(currentWeight) : profile.currentWeight,
-                targetWeight: targetWeight ? parseFloat(targetWeight) : profile.targetWeight,
-                targetTime: targetTime || profile.targetTime,
-                activityLevel: activityLevel || profile.activityLevel,
-                goal: goal || profile.goal,
-                dietType: dietType || profile.dietType
-            };
-
-            const updatedProfile = await Profile.update(profile.id, profileData);
-
-            return sendSuccessResponse(
-                res,
-                'Profile updated successfully',
-                { profile: updatedProfile }
-            );
+            console.log('[Profile Controller] Sending successful response');
+            return sendSuccessResponse(res, 'Profile updated successfully', {
+                profile: updatedProfile,
+                nutritionTargetsUpdated: true
+            });
         } catch (error) {
-            console.error('Update profile error:', error);
-            return sendErrorResponse(
-                res,
-                error.message || 'Error updating profile',
-                500
-            );
+            console.error('[Profile Controller] Update error:', error);
+            return sendErrorResponse(res, error.message || 'Error updating profile', 500);
         }
     },
 

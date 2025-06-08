@@ -11,6 +11,7 @@ const path = require('path');
 const GeminiService = require('../services/geminiService');
 const Food = require('../models/food');
 const Ingredient = require('../models/ingredient');
+const { calculateCalories } = require('../utils/nutritionCalculator');
 
 // Configuration
 const IMAGE_PATH = 'C:\\Users\\USER\\Downloads\\suon-cuu-nuong.webp';
@@ -191,10 +192,8 @@ async function testCalculateNutrition(id, ingredients) {
             if (ingredient.ingredient_carb) totalCarb += ingredient.ingredient_carb;
             if (ingredient.ingredient_fat) totalFat += ingredient.ingredient_fat;
             if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
-        });
-
-        // Calculate calories: 4 calories per gram of protein, 4 per gram of carbs, 9 per gram of fat
-        totalCalorie = (totalProtein * 4) + (totalCarb * 4) + (totalFat * 9);
+        });        // Calculate calories using the utility function (already rounds to whole number)
+        totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
 
         // Update food with calculated values
         const updatedFood = await Food.update(id, {
@@ -210,7 +209,8 @@ async function testCalculateNutrition(id, ingredients) {
         console.log('- Carbs:', totalCarb.toFixed(2), 'g');
         console.log('- Fat:', totalFat.toFixed(2), 'g');
         console.log('- Fiber:', totalFiber.toFixed(2), 'g');
-        console.log('- Calories:', totalCalorie.toFixed(2), 'kcal');
+        // In calories không dùng số thập phân, làm tròn tới số nguyên
+        console.log('- Calories:', Math.round(totalCalorie), 'kcal');
 
         return updatedFood;
     } catch (error) {

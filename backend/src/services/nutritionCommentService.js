@@ -2,12 +2,11 @@
  * Nutrition Comment Service
  * Generates nutrition comments based on the percentage difference between food nutrition and target nutrition for specific meal types
  */
-class NutritionCommentService {
-    /**
+class NutritionCommentService {    /**
      * Generate comments for all nutrition types based on food and target nutrition for a specific meal type
      * @param {Object} foodNutrition - Food nutrition values
      * @param {Object} targetNutrition - Target nutrition values
-     * @param {String} mealType - Meal type (breakfast, lunch, dinner, snack)
+     * @param {String|Number} mealType - Meal type or meal_type_id
      * @returns {Object} Comments for each nutrition type
      */
     static generateAllComments(foodNutrition, targetNutrition, mealType) {
@@ -56,7 +55,7 @@ class NutritionCommentService {
                 icon: '🥑'
             },
             carbs: {
-                type: 'Carbohydrate',
+                type: 'Carb',  // Changed from 'Carbohydrate' to 'Carb' for consistency
                 percentage: Math.round(carbPercentage),
                 comment: carbComment,
                 icon: '🍚'
@@ -68,7 +67,7 @@ class NutritionCommentService {
                 icon: '🥦'
             },
             calories: {
-                type: 'Calories',
+                type: 'Calorie',  // Changed from 'Calories' to 'Calorie' for consistency
                 percentage: Math.round(caloriesPercentage),
                 comment: caloriesComment,
                 icon: '🔥'
@@ -169,12 +168,10 @@ class NutritionCommentService {
         } else {
             return 'Nên giảm năng lượng nạp vào hoặc tăng cường vận động để cân đối.';
         }
-    }
-
-    /**
-     * Get meal-specific target nutrition
+    }    /**
+     * Get meal-specific target nutrition based on meal type
      * @param {Object} targetNutrition - Target nutrition values
-     * @param {String} mealType - Meal type (breakfast, lunch, dinner, snack)
+     * @param {String|Number} mealType - Meal type or meal_type_id
      * @returns {Object} Meal-specific target nutrition
      */
     static getMealTargetNutrition(targetNutrition, mealType) {
@@ -189,8 +186,23 @@ class NutritionCommentService {
             };
         }
 
+        // Convert mealType from ID to string if needed
+        let mealTypeStr = mealType;
+        if (typeof mealType === 'number' || !isNaN(Number(mealType))) {
+            // Map meal_type_id to meal type string
+            const id = Number(mealType);
+            switch (id) {
+                case 1: mealTypeStr = 'breakfast'; break;
+                case 2: mealTypeStr = 'lunch'; break;
+                case 3: mealTypeStr = 'dinner'; break;
+                case 4: mealTypeStr = 'snack'; break;
+                default: mealTypeStr = 'breakfast'; // Default to breakfast
+            }
+            console.log(`Converted meal_type_id ${mealType} to meal type "${mealTypeStr}"`);
+        }
+
         // Get meal-specific target or fallback to default proportions if not found
-        switch (mealType) {
+        switch (mealTypeStr) {
             case 'breakfast':
                 return targetNutrition.meals.breakfast || {
                     calories: targetNutrition.daily.calories * 0.3,

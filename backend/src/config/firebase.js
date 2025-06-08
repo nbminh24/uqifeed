@@ -19,7 +19,9 @@ const serviceAccount = {
 
 // Initialize Firebase admin
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
+    // Enable ignoring undefined values
+    ignoreUndefinedProperties: true
 });
 
 // Get Firestore database

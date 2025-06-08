@@ -24,11 +24,8 @@ const DIET_MACRO_RATIOS = {
     'Balanced': { carbs: 50, protein: 20, fat: 30 },
     'Vegetarian': { carbs: 55, protein: 15, fat: 30 },
     'Vegan': { carbs: 60, protein: 15, fat: 25 },
-    'Paleo': { carbs: 30, protein: 30, fat: 40 },
-    'Keto': { carbs: 5, protein: 20, fat: 75 },
-    'High Protein': { carbs: 25, protein: 35, fat: 40 },
-    'Low Carb': { carbs: 20, protein: 30, fat: 50 },
-    'Standard': { carbs: 50, protein: 20, fat: 30 }
+    'Low-carb': { carbs: 20, protein: 30, fat: 50 },
+    'Keto': { carbs: 5, protein: 20, fat: 75 }
 };
 
 // Fiber requirements by age and gender (grams per day)
@@ -81,13 +78,13 @@ class NutritionCalculator {
      */
     static calculateBMR(profile) {
         const { gender, height, currentWeight } = profile;
-        
+
         // Extract birthday from profile and calculate age
         const birthDate = new Date(profile.birthday);
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
-        
+
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
             age--;
         }
@@ -118,14 +115,14 @@ class NutritionCalculator {
      */
     static calculateTDEEAdjustment(profile) {
         const { currentWeight, targetWeight } = profile;
-        
+
         // Extract target time from profile and calculate weeks
         const targetDate = new Date(profile.targetTime);
         const today = new Date();
         const timeDiff = targetDate.getTime() - today.getTime();
         const daysDiff = timeDiff / (1000 * 3600 * 24);
         const goalDurationWeeks = Math.max(1, Math.ceil(daysDiff / 7)); // At least 1 week
-        
+
         // Each kg of weight change requires approximately 7700 calories
         const weightDifference = targetWeight - currentWeight;
         return (weightDifference * 7700) / (goalDurationWeeks * 7);
@@ -149,12 +146,12 @@ class NutritionCalculator {
     static calculateFiber(profile) {
         const { gender } = profile;
         const genderKey = gender === 'Male' ? 'male' : 'female';
-        
+
         // Extract birthday from profile and calculate age
         const birthDate = new Date(profile.birthday);
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
-        
+
         // Determine age category
         let ageCategory;
         if (age < 4) ageCategory = '1-3';
@@ -163,7 +160,7 @@ class NutritionCalculator {
         else if (age < 19) ageCategory = '14-18';
         else if (age < 51) ageCategory = '18-50';
         else ageCategory = '50+';
-        
+
         return FIBER_REQUIREMENTS[genderKey][ageCategory];
     }
 
@@ -176,12 +173,12 @@ class NutritionCalculator {
     static calculateMacros(tdee, dietType) {
         // Get macro ratios for the diet type or use balanced as default
         const macroRatios = DIET_MACRO_RATIOS[dietType] || DIET_MACRO_RATIOS['Balanced'];
-        
+
         // Calculate calories from each macro
         const carbCalories = tdee * (macroRatios.carbs / 100);
         const proteinCalories = tdee * (macroRatios.protein / 100);
         const fatCalories = tdee * (macroRatios.fat / 100);
-        
+
         // Convert calories to grams
         return {
             carbs: Math.round(carbCalories / CALORIES_PER_GRAM.CARBS),
@@ -208,7 +205,7 @@ class NutritionCalculator {
         } else {
             distribution = MEAL_DISTRIBUTION.standard;
         }
-        
+
         // Create meal plan
         const mealPlan = {
             breakfast: {
@@ -240,7 +237,7 @@ class NutritionCalculator {
                 fiber: Math.round(fiber * distribution.snack)
             }
         };
-        
+
         return mealPlan;
     }
 
@@ -252,25 +249,25 @@ class NutritionCalculator {
     static calculateNutritionTargets(profile) {
         // Step 1: Calculate BMR
         const bmr = this.calculateBMR(profile);
-        
+
         // Step 2: Calculate base TDEE
         const baseTDEE = this.calculateBaseTDEE(bmr, profile.activityLevel);
-        
+
         // Step 3: Calculate TDEE adjustment based on goals
         const adjustment = this.calculateTDEEAdjustment(profile);
-        
+
         // Step 4: Calculate final TDEE
         const finalTDEE = this.calculateFinalTDEE(baseTDEE, adjustment);
-        
+
         // Step 5: Calculate macronutrient distribution
         const macros = this.calculateMacros(finalTDEE, profile.dietType);
-        
+
         // Step 6: Calculate fiber requirement
         const fiber = this.calculateFiber(profile);
-        
+
         // Step 7: Calculate meal distribution
         const mealPlan = this.calculateMealDistribution(macros, finalTDEE, fiber, profile.goal);
-        
+
         // Return complete nutrition targets
         return {
             daily: {

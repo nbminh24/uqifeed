@@ -139,6 +139,29 @@ class NutritionScore {
             throw error;
         }
     }
+
+    /**
+     * Delete nutrition scores by food ID
+     * @param {String} foodId - Food ID
+     * @returns {Promise<void>}
+     */
+    static async deleteByFoodId(foodId) {
+        try {
+            const snapshot = await nutritionScoresCollection
+                .where('food_id', '==', foodId)
+                .get();
+
+            const batch = db.batch();
+            snapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+        } catch (error) {
+            console.error('Error deleting nutrition scores by food ID:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = NutritionScore;

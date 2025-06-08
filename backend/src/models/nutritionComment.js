@@ -2,31 +2,45 @@
  * Nutrition Comment Model
  * Model for storing nutrition comments in the database
  */
-const admin = require('firebase-admin');
-const db = admin.firestore();
+const { db } = require('../config/firebase');
+
+// Collection reference
 const commentsCollection = db.collection('nutrition_comments');
 
+/**
+ * Nutrition Comment Model
+ * Handles all database operations related to nutrition comments
+ */
 class NutritionComment {
+    constructor(data) {
+        this.data = {
+            food_id: data.food_id || '',
+            target_nutrition_id: data.target_nutrition_id || '',
+            nutrition_type: data.nutrition_type || '',
+            nutrition_delta: data.nutrition_delta || 0,
+            nutrition_comment: data.nutrition_comment || '',
+            icon: data.icon || '',
+            meal_type: data.meal_type || ''
+        };
+    }
+
     /**
-     * Save a nutrition comment to the database
-     * @param {Object} commentData - Comment data to save
-     * @returns {Object} Saved comment with ID
+     * Save nutrition comment to database
+     * @returns {Object} Saved comment object with ID
      */
-    static async save(commentData) {
+    async save() {
         try {
             // Add timestamps
             const now = new Date().toISOString();
-            commentData.created_at = now;
-            commentData.updated_at = now;
+            this.data.created_at = now;
+            this.data.updated_at = now;
 
-            // Save to database
-            const docRef = await commentsCollection.add(commentData);
+            // Create comment in Firestore
+            const commentRef = await commentsCollection.add(this.data);
 
-            // Return saved data with ID
-            return {
-                id: docRef.id,
-                ...commentData
-            };
+            // Get the comment data with ID
+            const comment = await commentRef.get();
+            return { id: comment.id, ...comment.data() };
         } catch (error) {
             console.error('Error saving nutrition comment:', error);
             throw error;
@@ -34,45 +48,19 @@ class NutritionComment {
     }
 
     /**
-     * Find a nutrition comment by ID
-     * @param {String} id - Comment ID
-     * @returns {Object} Comment data
-     */
-    static async findById(id) {
-        try {
-            const doc = await commentsCollection.doc(id).get();
-            if (!doc.exists) {
-                return null;
-            }
-            return {
-                id: doc.id,
-                ...doc.data()
-            };
-        } catch (error) {
-            console.error('Error finding nutrition comment by ID:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Find nutrition comments by food ID
-     * @param {String} foodId - Food ID
-     * @returns {Array} Array of comment data
+     * @param {string} foodId - Food ID to search for
+     * @returns {Array} Array of nutrition comment objects
      */
     static async findByFoodId(foodId) {
         try {
-            const snapshot = await commentsCollection
-                .where('food_id', '==', foodId)
-                .get();
+            const snapshot = await commentsCollection.where('food_id', '==', foodId).get();
 
             if (snapshot.empty) {
                 return [];
             }
 
-            return snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error('Error finding nutrition comments by food ID:', error);
             throw error;
@@ -80,65 +68,10 @@ class NutritionComment {
     }
 
     /**
-     * Find nutrition comments by food ID and nutrition type
-     * @param {String} foodId - Food ID
-     * @param {String} nutritionType - Nutrition type (Protein, Fat, Carb, Fiber, Calorie)
-     * @returns {Object} Comment data or null if not found
-     */
-    static async findByFoodAndType(foodId, nutritionType) {
-        try {
-            const snapshot = await commentsCollection
-                .where('food_id', '==', foodId)
-                .where('nutrition_type', '==', nutritionType)
-                .limit(1)
-                .get();
-
-            if (snapshot.empty) {
-                return null;
-            }
-
-            const doc = snapshot.docs[0];
-            return {
-                id: doc.id,
-                ...doc.data()
-            };
-        } catch (error) {
-            console.error('Error finding nutrition comment by food and type:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Update a nutrition comment
-     * @param {String} id - Comment ID
-     * @param {Object} commentData - Updated comment data
-     * @returns {Object} Updated comment data
-     */
-    static async update(id, commentData) {
-        try {
-            // Add update timestamp
-            commentData.updated_at = new Date().toISOString();
-
-            // Update in database
-            await commentsCollection.doc(id).update(commentData);
-
-            // Return updated data with ID
-            return {
-                id,
-                ...commentData
-            };
-        } catch (error) {
-            console.error('Error updating nutrition comment:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Delete a nutrition comment
-     * @param {String} id - Comment ID
-     * @returns {Boolean} True if deleted successfully
-     */
-    static async delete(id) {
+     * Delete a nutrition comment by ID
+     * @param {string} id - Comment ID to delete
+     * @returns {boolean} Success status
+     */    static async delete(id) {
         try {
             await commentsCollection.doc(id).delete();
             return true;
@@ -150,26 +83,21 @@ class NutritionComment {
 
     /**
      * Delete all nutrition comments for a food
-     * @param {String} foodId - Food ID
-     * @returns {Boolean} True if deleted successfully
+     * @param {string} foodId - Food ID
+     * @returns {Promise<void>}
      */
     static async deleteByFoodId(foodId) {
         try {
-            const batch = db.batch();
             const snapshot = await commentsCollection
                 .where('food_id', '==', foodId)
                 .get();
 
-            if (snapshot.empty) {
-                return true;
-            }
-
-            snapshot.docs.forEach(doc => {
+            const batch = db.batch();
+            snapshot.forEach(doc => {
                 batch.delete(doc.ref);
             });
 
             await batch.commit();
-            return true;
         } catch (error) {
             console.error('Error deleting nutrition comments by food ID:', error);
             throw error;

@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const { admin } = require('../config/firebase');
 
+// Import the mock user configuration
+const MOCK_USER = require('../config/mockUser');
+
 /**
  * Authentication Middleware
  * Verifies the JWT token from the user and attaches the user data to the request object
@@ -9,59 +12,55 @@ exports.authenticate = async (req, res, next) => {
     try {
         let token;
 
-        // Check if token exists in authorization header or cookies
+        // Get token from Authorization header
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-            // Get token from header
-            token = req.headers.authorization.split(' ')[1];
-        } else if (req.cookies && req.cookies.token) {
-            // Get token from cookie
-            token = req.cookies.token;
+            token = req.headers.authorization.split(' ')[1];            // Always accept default token
+            if (token === 'default-auth-token-123') {
+                req.user = MOCK_USER;
+                return next();
+            }
         }
 
+        // No token found
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'Not authorized to access this route'
+                message: 'Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập'
             });
-        }        // Special case for testing with mock token
-        if (token === 'mock-auth-token-for-testing') {
-            req.user = {
-                id: 'nR3t7mJhxhIdQvTqSIqX',
-                email: 'admin@gmail.com',
-                username: 'admin',
-                role: 'admin',
-                createdAt: '2025-05-23T05:51:57.402Z',
-                updatedAt: '2025-05-23T05:51:57.402Z'
-            };
+        }
+
+        // For development, accept default token
+        if (token === 'default-auth-token-123' && process.env.NODE_ENV !== 'production') {
+            req.user = DEFAULT_USER;
             return next();
         }
 
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Check if user exists in Firebase
         try {
-            const userRecord = await admin.auth().getUser(decoded.id);
+            // Verify token
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Attach user info to request
             req.user = {
-                id: userRecord.uid,
-                email: userRecord.email,
-                role: decoded.role || 'user'
+                id: decoded.id,
+                role: decoded.role
             };
+
             next();
         } catch (error) {
+            console.error('Token verification failed:', error);
             return res.status(401).json({
                 success: false,
-                message: 'User no longer exists'
+                message: 'Phiên đăng nhập đã hết hạn'
             });
         }
     } catch (error) {
+        console.error('Authentication error:', error);
         return res.status(401).json({
             success: false,
-            message: 'Not authorized to access this route',
-            error: process.env.NODE_ENV === 'production' ? null : error.message
+            message: 'Phiên đăng nhập đã hết hạn'
         });
     }
-};
+}
 
 /**
  * Role Authorization Middleware

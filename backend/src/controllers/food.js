@@ -1,5 +1,8 @@
 const Food = require('../models/food');
 const Ingredient = require('../models/ingredient');
+const NutritionComment = require('../models/nutritionComment');
+const NutritionScore = require('../models/nutritionScore');
+const TargetNutrition = require('../models/targetNutrition');
 const ImageProcessingService = require('../services/uploadService');
 const GeminiService = require('../services/geminiService');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/responseHandler');
@@ -44,20 +47,25 @@ const FoodController = {
                     'Failed to analyze food image',
                     500
                 );
-            } const foodData = analysisResult.foodData;            // Extract data for food table
+            } const foodData = analysisResult.foodData;            // Get Cloudinary URL from processing results
+            const foodImageUrl = analysisResult.cloudinaryInfo?.url || base64Image || null;
+            const cloudinaryPublicId = analysisResult.cloudinaryInfo?.publicId || null;
+
+            // Extract data for food table
             const food = {
                 user_id: req.user ? req.user.id : 'nR3t7mJhxhIdQvTqSIqX', // Add fallback for testing
                 meal_type_id,
-                food_image: base64Image,
+                food_image: foodImageUrl,
+                cloudinary_public_id: cloudinaryPublicId,
                 food_name: foodData.foodName,
                 food_description: foodData.foodDescription,
                 food_advice: foodData.foodAdvice,
                 food_preparation: foodData.foodPreparation,
-                // Initialize total nutrient values as null, to be calculated later
-                total_protein: null,
-                total_carb: null,
-                total_fat: null,
-                total_fiber: null,
+                // Initialize total nutrient values as 0 instead of null
+                total_protein: 0,
+                total_carb: 0,
+                total_fat: 0,
+                total_fiber: 0,
                 total_calorie: null
             };
 
@@ -343,8 +351,10 @@ const FoodController = {
                 if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
             });
 
-            // Calculate calories: 4 calories per gram of protein, 4 per gram of carbs, 9 per gram of fat
-            totalCalorie = (totalProtein * 4) + (totalCarb * 4) + (totalFat * 9);
+            // Import và sử dụng hàm calculateCalories
+            const { calculateCalories } = require('../utils/nutritionCalculator');
+            // Calculate calories using the utility function (already rounds to whole number)
+            totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
 
             // Update food with calculated nutritional values
             const updatedFood = await Food.update(food.id, {
@@ -368,7 +378,90 @@ const FoodController = {
                 500
             );
         }
-    }
+    },
+
+    /**
+     * Get detailed food information including related data
+     * @route GET /api/foods/:id/detailed
+     * @access Private
+     */
+    getFoodWithDetails: async (req, res) => {
+        try {
+            // Get food data
+            const food = await Food.findById(req.params.id);
+            if (!food) {
+                return sendErrorResponse(res, 'Food not found', 404);
+            }
+
+            // Check authorization
+            const isTest = !req.user || req.user.id === 'nR3t7mJhxhIdQvTqSIqX';
+            if (!isTest && food.user_id !== req.user.id && req.user.role !== 'admin') {
+                return sendErrorResponse(res, 'Not authorized to access this food', 403);
+            }            // Get ingredients, comments and score
+            const ingredients = await Ingredient.findByFoodId(food.id);
+            const nutritionComments = await NutritionComment.findByFoodId(food.id);
+            const nutritionScore = await NutritionScore.findByFoodId(food.id);
+
+            // Get target nutrition
+            let targetNutrition = null;
+            try {
+                // Get target nutrition for the user who owns the food
+                const userId = food.user_id;
+                console.log('\n=== DEBUG: TARGET NUTRITION LOOKUP ===');
+                console.log('Looking up target nutrition for user ID:', userId);
+
+                // First try to find by user ID
+                targetNutrition = await TargetNutrition.findByUserId(userId);
+
+                if (targetNutrition) {
+                    console.log('Found target nutrition for user:', targetNutrition.id);
+                } else {
+                    console.log('No target nutrition found for user. Trying default ID.');
+
+                    // Fallback to hard-coded ID as a last resort
+                    const { db } = require('../config/firebase');
+                    const targetNutritionId = 'LOjgsvV7Pl1XFUGPr5LN';
+
+                    // Try to get the document directly
+                    const docRef = db.collection('target_nutrients').doc(targetNutritionId);
+                    const doc = await docRef.get();
+
+                    if (doc.exists) {
+                        targetNutrition = { id: doc.id, ...doc.data() };
+                        console.log('Found fallback target nutrition:', targetNutrition.id);
+                    } else {
+                        console.log('Fallback target nutrition not found');
+                        // Try to list all documents in collection to see what's available
+                        const snapshot = await db.collection('target_nutrients').get();
+                        console.log('Available documents:', snapshot.docs.map(d => ({ id: d.id })));
+                    }
+                }
+                console.log('=== END DEBUG ===\n');
+
+            } catch (error) {
+                console.error('Error getting target nutrition:', error);
+            }
+
+            return sendSuccessResponse(
+                res,
+                'Detailed food information retrieved successfully',
+                {
+                    food,
+                    ingredients,
+                    nutritionComments,
+                    nutritionScore,
+                    targetNutrition
+                }
+            );
+        } catch (error) {
+            console.error('Error getting detailed food information:', error);
+            return sendErrorResponse(
+                res,
+                error.message || 'Error retrieving detailed food information',
+                500
+            );
+        }
+    },
 };
 
 module.exports = FoodController;

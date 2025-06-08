@@ -9,6 +9,8 @@ const path = require('path');
 const GeminiService = require('../services/geminiService');
 const Food = require('../models/food');
 const Ingredient = require('../models/ingredient');
+// Import the nutrition calculator utility
+const { calculateCalories } = require('../utils/nutritionCalculator');
 
 // Configuration
 const IMAGE_PATH = 'C:\\Users\\USER\\Downloads\\suon-cuu-nuong.webp';
@@ -127,10 +129,8 @@ async function createSampleFoodData() {
             if (ingredient.ingredient_carb) totalCarb += ingredient.ingredient_carb;
             if (ingredient.ingredient_fat) totalFat += ingredient.ingredient_fat;
             if (ingredient.ingredient_fiber) totalFiber += ingredient.ingredient_fiber;
-        });
-
-        // Calculate calories: 4 calories per gram of protein, 4 per gram of carbs, 9 per gram of fat
-        totalCalorie = (totalProtein * 4) + (totalCarb * 4) + (totalFat * 9);
+        });        // Calculate calories using the utility function (already rounds to whole number)
+        totalCalorie = calculateCalories(totalProtein, totalCarb, totalFat);
 
         // Update food with nutrition values
         console.log('Updating food with calculated nutrition values...');

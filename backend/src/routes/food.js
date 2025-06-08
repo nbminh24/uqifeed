@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate } = require('../middleware/mockAuth');
 const FoodController = require('../controllers/food');
 
 /**
- * @route POST /api/foods/analyze-and-save
- * @desc Analyze food image with Gemini API and save food data
+ * @route GET /api/foods/:id/detailed
+ * @desc Get detailed food information including related data like comments and scores
  * @access Private
  */
+router.get('/:id/detailed', authenticate, FoodController.getFoodWithDetails);
+
+
 router.post(
     '/analyze-and-save',
     authenticate,

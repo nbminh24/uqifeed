@@ -1,0 +1,251 @@
+import React from 'react';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { ThemedText } from '../ThemedText';
+import CircularProgress from 'react-native-circular-progress-indicator';
+import { NutritionSummary } from '@/services/nutritionSummaryService';
+import Svg, { Rect } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';React from 'react';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
+import { ThemedText } from '../ThemedText';
+import CircularProgress from 'react-native-circular-progress-indicator';
+import { NutritionSummary } from '@/services/nutritionSummaryService';
+import Svg, { Rect } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
+
+interface NutritionChartsProps {
+  nutritionSummary: NutritionSummary;
+}
+
+export const NutritionCharts: React.FC<NutritionChartsProps> = ({ nutritionSummary }) => {
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 350;
+  const barWidth = isSmallScreen ? (width - 64) : ((width - 64) / 2);
+  // Calculate percentages
+  const caloriePercentage = Math.min(100, Math.round((nutritionSummary.calories.consumed / nutritionSummary.calories.target) * 100));
+  const proteinPercentage = Math.min(100, Math.round((nutritionSummary.protein.consumed / nutritionSummary.protein.target) * 100));
+  const carbsPercentage = Math.min(100, Math.round((nutritionSummary.carbs.consumed / nutritionSummary.carbs.target) * 100));
+  const fatPercentage = Math.min(100, Math.round((nutritionSummary.fat.consumed / nutritionSummary.fat.target) * 100));
+  const fiberPercentage = Math.min(100, Math.round((nutritionSummary.fiber.consumed / nutritionSummary.fiber.target) * 100));
+
+  // Colors matching NutrientCard component
+  const colorMap = {
+    protein: '#118AB2', // Blue
+    fat: '#06D6A0',     // Green
+    carbs: '#FFD166',   // Yellow
+    fiber: '#8BC34A',   // Light green
+    calories: '#FF6B6B' // Red
+  };
+  
+  // Icons for each nutrient
+  const iconMap = {
+    protein: 'barbell',
+    fat: 'water',
+    carbs: 'nutrition',
+    fiber: 'leaf',
+    calories: 'flame'
+  };
+  return (
+    <View style={styles.container}>
+      <ThemedText style={styles.title}>Today's Nutrition</ThemedText>
+      
+      <View style={[styles.chartsRow, width < 350 ? styles.chartsColumnSmallScreen : null]}>
+        {/* Calorie Circle Chart */}
+        <View style={[styles.calorieChart, width < 350 ? styles.calorieChartSmallScreen : null]}>
+          <CircularProgress
+            value={caloriePercentage}
+            radius={width < 350 ? 65 : 80}
+            duration={1000}
+            progressValueColor={'#333'}
+            maxValue={100}
+            title={'CALORIES'}
+            titleColor={'#333'}
+            titleStyle={{ fontWeight: '600', fontSize: 12 }}
+            activeStrokeColor={colorMap.calories}
+            inActiveStrokeColor={'#EEEEEE'}
+            inActiveStrokeOpacity={0.5}
+            inActiveStrokeWidth={10}
+            activeStrokeWidth={10}
+            valueSuffix={'%'}
+            progressFormatter={(value: number) => {
+              'worklet';
+              return value.toFixed(0) + '%';
+            }}
+          />
+          <ThemedText style={styles.calorieText}>
+            {nutritionSummary.calories.consumed} / {nutritionSummary.calories.target} kcal
+          </ThemedText>
+        </View>
+        
+        {/* Nutrients Bar Charts */}
+        <View style={[
+          styles.barChartsContainer, 
+          width < 350 ? styles.barChartsContainerSmallScreen : null
+        ]}>         {/* Protein Bar */}
+          <View style={styles.barChartRow}>
+            <View style={styles.labelContainer}>
+              <Ionicons name={iconMap.protein as any} size={18} color={colorMap.protein} style={styles.labelIcon} />
+              <ThemedText style={styles.barLabel}>Protein</ThemedText>
+            </View>
+            <View style={styles.barContainer}>
+              <Svg width={CHART_WIDTH / 2} height={20}>
+                <Rect width={CHART_WIDTH / 2} height={10} fill="#EEEEEE" y={5} rx={5} />
+                <Rect 
+                  width={(CHART_WIDTH / 2) * (proteinPercentage / 100)} 
+                  height={10} 
+                  fill={colorMap.protein} 
+                  y={5} 
+                  rx={5} 
+                />
+              </Svg>
+              <ThemedText style={styles.barText}>
+                {nutritionSummary.protein.consumed}g / {nutritionSummary.protein.target}g
+              </ThemedText>
+            </View>
+          </View>
+            {/* Carbs Bar */}
+          <View style={styles.barChartRow}>
+            <View style={styles.labelContainer}>
+              <Ionicons name={iconMap.carbs as any} size={18} color={colorMap.carbs} style={styles.labelIcon} />
+              <ThemedText style={styles.barLabel}>Carbs</ThemedText>
+            </View>
+            <View style={styles.barContainer}>
+              <Svg width={CHART_WIDTH / 2} height={20}>
+                <Rect width={CHART_WIDTH / 2} height={10} fill="#EEEEEE" y={5} rx={5} />
+                <Rect 
+                  width={(CHART_WIDTH / 2) * (carbsPercentage / 100)} 
+                  height={10} 
+                  fill={colorMap.carbs} 
+                  y={5} 
+                  rx={5} 
+                />
+              </Svg>
+              <ThemedText style={styles.barText}>
+                {nutritionSummary.carbs.consumed}g / {nutritionSummary.carbs.target}g
+              </ThemedText>
+            </View>
+          </View>
+          
+          {/* Fat Bar */}
+          <View style={styles.barChartRow}>
+            <View style={styles.labelContainer}>
+              <Ionicons name={iconMap.fat as any} size={18} color={colorMap.fat} style={styles.labelIcon} />
+              <ThemedText style={styles.barLabel}>Fat</ThemedText>
+            </View>
+            <View style={styles.barContainer}>
+              <Svg width={CHART_WIDTH / 2} height={20}>
+                <Rect width={CHART_WIDTH / 2} height={10} fill="#EEEEEE" y={5} rx={5} />
+                <Rect 
+                  width={(CHART_WIDTH / 2) * (fatPercentage / 100)} 
+                  height={10} 
+                  fill={colorMap.fat} 
+                  y={5} 
+                  rx={5} 
+                />
+              </Svg>
+              <ThemedText style={styles.barText}>
+                {nutritionSummary.fat.consumed}g / {nutritionSummary.fat.target}g
+              </ThemedText>
+            </View>
+          </View>
+          
+          {/* Fiber Bar */}
+          <View style={styles.barChartRow}>
+            <View style={styles.labelContainer}>
+              <Ionicons name={iconMap.fiber as any} size={18} color={colorMap.fiber} style={styles.labelIcon} />
+              <ThemedText style={styles.barLabel}>Fiber</ThemedText>
+            </View>
+            <View style={styles.barContainer}>
+              <Svg width={CHART_WIDTH / 2} height={20}>
+                <Rect width={CHART_WIDTH / 2} height={10} fill="#EEEEEE" y={5} rx={5} />
+                <Rect 
+                  width={(CHART_WIDTH / 2) * (fiberPercentage / 100)} 
+                  height={10} 
+                  fill={colorMap.fiber} 
+                  y={5} 
+                  rx={5} 
+                />
+              </Svg>
+              <ThemedText style={styles.barText}>
+                {nutritionSummary.fiber.consumed}g / {nutritionSummary.fiber.target}g
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    margin: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  chartsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  chartsColumnSmallScreen: {
+    flexDirection: 'column',
+  },
+  calorieChart: {
+    alignItems: 'center',
+    width: '48%',
+  },
+  calorieChartSmallScreen: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  calorieText: {
+    fontSize: 13,
+    marginTop: 8,
+    fontWeight: '500',
+  },
+  barChartsContainer: {
+    width: '48%',
+    justifyContent: 'space-between',
+  },
+  barChartsContainerSmallScreen: {
+    width: '100%',
+  },
+  barChartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 75,
+    marginRight: 5,
+  },
+  labelIcon: {
+    marginRight: 4,
+  },
+  barLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  barContainer: {
+    flex: 1,
+  },
+  barText: {
+    fontSize: 11,
+    marginTop: 2,
+    textAlign: 'right',
+  },
+});
