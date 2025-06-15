@@ -18,6 +18,8 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet()); // Security headers
 app.use(morgan('dev')); // Logging
 app.use(cors({
+    origin: ['http://10.0.118.219:19000', 'http://10.0.118.219:19001', 'http://10.0.118.219:19002', 'exp://10.0.118.219:19000'],
+    credentials: true,
     origin: ['http://localhost:19000', 'http://localhost:19006', 'http://10.0.2.2:19000',
         'exp://localhost:19000', 'http://10.0.0.233:19000', 'exp://10.0.0.233:19000',
         'http://10.0.7.189:19000', 'exp://10.0.7.189:19000',
