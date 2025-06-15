@@ -10,8 +10,6 @@ Dự án được chia thành hai phần chính:
 - Được xây dựng bằng React Native/Expo
 - TypeScript làm ngôn ngữ chính
 - Giao diện người dùng thân thiện và responsive
-- Hỗ trợ chế độ sáng/tối (Dark/Light mode)
-
 ### Backend (Server)
 - Node.js server
 - Firebase làm cơ sở dữ liệu và authentication
