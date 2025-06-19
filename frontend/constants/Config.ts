@@ -1,6 +1,6 @@
 // Handle different development environments
 export const API_URL = __DEV__
-    ? 'http://10.0.118.219:5000'  // Local development server (updated to match current IP)
+    ? 'http://10.0.152.193:5000'  // Local development server (updated to match current IP)
     : 'https://your-production-api.com'; // Production
 
 // Helper function to build API URLs
