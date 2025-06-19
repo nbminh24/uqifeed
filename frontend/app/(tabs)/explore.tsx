@@ -3,7 +3,6 @@ import { StyleSheet, View, ActivityIndicator, ScrollView, TouchableOpacity } fro
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import WeeklyAverages from '@/components/food-history/WeeklyAverages';
-import WeeklyBarChart from '@/components/food-history/WeeklyBarChart';
 import { WeeklyBMICard } from '@/components/food-history/WeeklyBMICard';
 import { UpdateBMIModal } from '@/components/food-history/UpdateBMIModal';
 import { WeeklyNutritionAnalysis } from '@/components/food-history/WeeklyNutritionAnalysis';
@@ -24,6 +23,7 @@ export default function WeekScreen() {
       direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1)
     );
   };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,7 +38,9 @@ export default function WeekScreen() {
           getWeeklyNutrition(selectedDate),
           getWeeklyNutrition(previousWeekStart),
           getBMIHistory(formattedWeekStart, formattedWeekEnd)
-        ]); setWeeklyData(weeklyNutritionData);
+        ]);
+
+        setWeeklyData(weeklyNutritionData);
         setPreviousWeekData(previousWeekNutritionData);
         // Use first BMI record for the week if available
         setBmiData(weekBMI && weekBMI.length > 0 ? weekBMI[0] : null);
@@ -50,7 +52,9 @@ export default function WeekScreen() {
     };
 
     fetchData();
-  }, [selectedDate]); const handleUpdateBMI = async (weight: number, height: number, selectedDate: string) => {
+  }, [selectedDate]);
+
+  const handleUpdateBMI = async (weight: number, height: number, selectedDate: string) => {
     try {
       setIsLoading(true);
       const updatedBMI = await updateWeeklyBMI(weight, height, selectedDate);
@@ -74,11 +78,6 @@ export default function WeekScreen() {
         })
         .catch(error => console.error('Error refreshing BMI data:', error));
     }
-  };
-
-  const getMaxValue = (nutritionType: 'calories' | 'proteins' | 'carbs' | 'fats') => {
-    if (!weeklyData) return 0;
-    return Math.max(...Object.values(weeklyData.dailyData).map(day => day[nutritionType]));
   };
 
   if (isLoading) {
@@ -117,10 +116,13 @@ export default function WeekScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>        <WeeklyBMICard
-        bmiData={bmiData}
-        onUpdatePress={() => setIsUpdateBMIModalVisible(true)}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <WeeklyBMICard
+          bmiData={bmiData}
+          onUpdatePress={() => setIsUpdateBMIModalVisible(true)}
+        />
+
+        <WeeklyAverages averages={weeklyData.averages} />
 
         <UpdateBMIModal
           visible={isUpdateBMIModalVisible}
@@ -129,53 +131,13 @@ export default function WeekScreen() {
           currentWeight={bmiData?.weight}
           currentHeight={bmiData?.height}
           defaultDate={format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-        />        <WeeklyNutritionAnalysis
+        />
+
+        <WeeklyNutritionAnalysis
           weeklyData={weeklyData}
           previousWeekData={previousWeekData}
         />
-
-        <WeeklyAverages averages={weeklyData.averages} />
-
-        <WeeklyBarChart
-          data={weeklyData.dailyData}
-          maxValue={getMaxValue('calories')}
-          nutritionType="calories"
-          color="#FF6B6B"
-          title="Calories"
-        />
-
-        <WeeklyBarChart
-          data={weeklyData.dailyData}
-          maxValue={getMaxValue('proteins')}
-          nutritionType="proteins"
-          color="#118AB2"
-          title="Protein"
-        />
-
-        <WeeklyBarChart
-          data={weeklyData.dailyData}
-          maxValue={getMaxValue('carbs')}
-          nutritionType="carbs"
-          color="#FFD166"
-          title="Carbs"
-        />
-
-        <WeeklyBarChart
-          data={weeklyData.dailyData}
-          maxValue={getMaxValue('fats')}
-          nutritionType="fats"
-          color="#06D6A0"
-          title="Fat"
-        />
       </ScrollView>
-
-      <UpdateBMIModal
-        visible={isUpdateBMIModalVisible}
-        onClose={() => setIsUpdateBMIModalVisible(false)}
-        onSubmit={handleUpdateBMI}
-        currentWeight={bmiData?.weight}
-        currentHeight={bmiData?.height}
-      />
     </ThemedView>
   );
 }

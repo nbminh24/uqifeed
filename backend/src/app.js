@@ -30,6 +30,7 @@ app.get('/health', (req, res) => {
 
 app.use(cors({
     origin: [
+
         'http://10.0.152.193:19000',
         'http://10.0.152.193:19001',
         'http://10.0.152.193:19002',
