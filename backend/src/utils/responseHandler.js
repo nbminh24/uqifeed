@@ -90,3 +90,23 @@ exports.sendErrorResponse = (res, message, statusCode = 400, errors = null) => {
 
     res.status(statusCode).json(response);
 };
+
+/**
+ * Send error response
+ * @param {Object} res - Express response object
+ * @param {String} message - Error message
+ * @param {Number} statusCode - HTTP status code
+ * @param {Object} errors - Optional error details
+ */
+exports.sendError = (res, message, statusCode = 500, errors = null) => {
+    const response = {
+        success: false,
+        message
+    };
+
+    if (errors) {
+        response.errors = errors;
+    }
+
+    res.status(statusCode).json(response);
+};

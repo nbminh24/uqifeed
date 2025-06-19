@@ -4,35 +4,79 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import WeeklyAverages from '@/components/food-history/WeeklyAverages';
 import WeeklyBarChart from '@/components/food-history/WeeklyBarChart';
+import { WeeklyBMICard } from '@/components/food-history/WeeklyBMICard';
+import { UpdateBMIModal } from '@/components/food-history/UpdateBMIModal';
+import { WeeklyNutritionAnalysis } from '@/components/food-history/WeeklyNutritionAnalysis';
 import { getWeeklyNutrition, WeeklyNutrition } from '@/services/weeklyNutritionService';
+import { WeeklyBMIData, getCurrentWeekBMI, updateWeeklyBMI, getBMIHistory } from '@/services/weeklyBMIService';
 import { format, addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
 
 export default function WeekScreen() {
   const [weeklyData, setWeeklyData] = useState<WeeklyNutrition | null>(null);
+  const [previousWeekData, setPreviousWeekData] = useState<WeeklyNutrition | null>(null);
+  const [bmiData, setBmiData] = useState<WeeklyBMIData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isUpdateBMIModalVisible, setIsUpdateBMIModalVisible] = useState(false);
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     setSelectedDate(currentDate =>
       direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1)
     );
   };
-
   useEffect(() => {
-    const fetchWeeklyData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await getWeeklyNutrition(selectedDate);
-        setWeeklyData(data);
+        const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Start on Monday
+        const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+        const previousWeekStart = subWeeks(weekStart, 1);
+        const formattedWeekStart = format(weekStart, 'yyyy-MM-dd');
+        const formattedWeekEnd = format(weekEnd, 'yyyy-MM-dd');
+
+        const [weeklyNutritionData, previousWeekNutritionData, weekBMI] = await Promise.all([
+          getWeeklyNutrition(selectedDate),
+          getWeeklyNutrition(previousWeekStart),
+          getBMIHistory(formattedWeekStart, formattedWeekEnd)
+        ]); setWeeklyData(weeklyNutritionData);
+        setPreviousWeekData(previousWeekNutritionData);
+        // Use first BMI record for the week if available
+        setBmiData(weekBMI && weekBMI.length > 0 ? weekBMI[0] : null);
       } catch (error) {
-        console.error('Error fetching weekly data:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchWeeklyData();
-  }, [selectedDate]); const getMaxValue = (nutritionType: 'calories' | 'proteins' | 'carbs' | 'fats') => {
+    fetchData();
+  }, [selectedDate]); const handleUpdateBMI = async (weight: number, height: number, selectedDate: string) => {
+    try {
+      setIsLoading(true);
+      const updatedBMI = await updateWeeklyBMI(weight, height, selectedDate);
+      if (updatedBMI) {
+        setBmiData(updatedBMI);
+      }
+    } catch (error) {
+      console.error('Error updating BMI:', error);
+    } finally {
+      setIsLoading(false);
+      // Refresh data after update
+      const weekStart = startOfWeek(new Date(selectedDate), { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(new Date(selectedDate), { weekStartsOn: 1 });
+      const formattedWeekStart = format(weekStart, 'yyyy-MM-dd');
+      const formattedWeekEnd = format(weekEnd, 'yyyy-MM-dd');
+      getBMIHistory(formattedWeekStart, formattedWeekEnd)
+        .then(bmiHistory => {
+          if (bmiHistory && bmiHistory.length > 0) {
+            setBmiData(bmiHistory[0]);
+          }
+        })
+        .catch(error => console.error('Error refreshing BMI data:', error));
+    }
+  };
+
+  const getMaxValue = (nutritionType: 'calories' | 'proteins' | 'carbs' | 'fats') => {
     if (!weeklyData) return 0;
     return Math.max(...Object.values(weeklyData.dailyData).map(day => day[nutritionType]));
   };
@@ -73,7 +117,23 @@ export default function WeekScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}>        <WeeklyBMICard
+        bmiData={bmiData}
+        onUpdatePress={() => setIsUpdateBMIModalVisible(true)}
+      />
+
+        <UpdateBMIModal
+          visible={isUpdateBMIModalVisible}
+          onClose={() => setIsUpdateBMIModalVisible(false)}
+          onSubmit={handleUpdateBMI}
+          currentWeight={bmiData?.weight}
+          currentHeight={bmiData?.height}
+          defaultDate={format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+        />        <WeeklyNutritionAnalysis
+          weeklyData={weeklyData}
+          previousWeekData={previousWeekData}
+        />
+
         <WeeklyAverages averages={weeklyData.averages} />
 
         <WeeklyBarChart
@@ -101,12 +161,21 @@ export default function WeekScreen() {
         />
 
         <WeeklyBarChart
-          data={weeklyData.dailyData} maxValue={getMaxValue('fats')}
+          data={weeklyData.dailyData}
+          maxValue={getMaxValue('fats')}
           nutritionType="fats"
           color="#06D6A0"
           title="Fat"
         />
       </ScrollView>
+
+      <UpdateBMIModal
+        visible={isUpdateBMIModalVisible}
+        onClose={() => setIsUpdateBMIModalVisible(false)}
+        onSubmit={handleUpdateBMI}
+        currentWeight={bmiData?.weight}
+        currentHeight={bmiData?.height}
+      />
     </ThemedView>
   );
 }
