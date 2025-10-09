@@ -89,10 +89,3 @@ Chi tiết về từng phần có thể được tìm thấy trong:
 - Firebase (Authentication & Firestore)
 - Cloudinary (Quản lý hình ảnh)
 
-## Đóng Góp
-
-Vui lòng đọc hướng dẫn đóng góp trong từng thư mục con trước khi bắt đầu.
-
-## Giấy Phép
-
-Dự án này được phân phối dưới giấy phép [MIT License](LICENSE).
